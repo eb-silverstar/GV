@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kt.corp.profile.mapper.ProfileMapper">
+
+	<select id="existGuest" parameterType="GuestProfileDTO" resultType="boolean">
+		SELECT
+			EXISTS (
+				SELECT 1
+				FROM KT.GV_GUEST
+				WHERE 1 = 1
+				AND guest_nick_nm = #{guestNickNm}
+				<if test='guestId != null and !guestId.equals("")'>
+					AND guest_id != #{guestId}
+				</if>
+			)
+	</select>
+
+	<select id="getUserProfile" parameterType="String" resultType="UserProfileDTO">
+		SELECT
+			GU.USER_ID
+             , GU.PF_ON_OFF
+             , CAST(AES_DECRYPT(UNHEX(GU.NM),SHA2('a1s2d3f4g5h6j7k8l9!',512)) AS CHAR) AS NM
+             , GC.COM_NM
+             , GCT.TEAM
+             , GCJT.JOB_TIT
+             , GU.INTRO
+             , GU.PHONE_NUM
+             , CAST(AES_DECRYPT(UNHEX(GU.MAIL),SHA2('a1s2d3f4g5h6j7k8l9!',512)) AS CHAR) AS MAIL
+             , GUS.USER_STATE_CODE
+             , GE.AUTH
+        FROM GV_USER GU
+                 LEFT JOIN GV_EMPLOYEE GE on GU.USER_ID = GE.USER_ID
+                 LEFT JOIN GV_COMPANY GC on GE.COM_ID = GC.COM_ID
+                 LEFT JOIN GV_COMPANY_TEAM GCT on GE.TEAM_ID = GCT.TEAM_ID
+                 LEFT JOIN GV_COMPANY_JOB_TIT GCJT on GE.JOB_TIT = GCJT.JOB_TIT_ID
+                 LEFT JOIN GV_USER_STATE GUS on GU.USER_ID = GUS.USER_ID
+        WHERE GU.USER_ID = #{userId};
+	</select>
+	
+	<select id="getGuestProfile" parameterType="String" resultType="GuestProfileDTO">
+		SELECT
+			guest_id
+			,guest_nick_nm
+			,state_code
+		FROM KT.GV_GUEST
+		WHERE 1 = 1
+		AND guest_id = #{guestId}
+	</select>
+	
+	<update id="updateUserInfo" parameterType="UserProfileDTO">
+		UPDATE KT.GV_USER usr
+		LEFT JOIN KT.GV_EMPLOYEE emp ON usr.user_id = emp.user_id
+		SET usr.nm = HEX(AES_ENCRYPT(#{nm},SHA2('a1s2d3f4g5h6j7k8l9!',512)))
+			,usr.intro = #{intro}
+			,usr.phone_num = IF(emp.auth = true, usr.phone_num, #{phoneNum})
+		WHERE 1 = 1
+		AND usr.user_id = #{userId}
+	</update>
+	
+	<update id="updateGuestInfo" parameterType="GuestProfileDTO">
+		UPDATE KT.GV_GUEST
+		SET
+			guest_nick_nm = #{guestNickNm}
+		WHERE 1 = 1
+		AND guest_id = #{guestId}
+	</update>
+
+</mapper>

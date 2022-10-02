@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kt.corp.mtg.mapper.MtgMapper">
+
+	<insert id="insertMtg" useGeneratedKeys="true" keyProperty="seq" parameterType="MtgDTO">
+		INSERT INTO KT.GV_MTG
+		(
+			reg_date
+			,up_date
+			,mtg_user_id
+			,mtg_com_id
+			,mtg_tit
+			,mtg_start_date
+			,mtg_end_date
+			,mtg_start_time
+			,mtg_end_time
+			,mtg_lock
+		<if test="mtgLockPw != null">
+			,mtg_lock_pw
+		</if>
+			,mtg_url
+		<if test="mtgDtl != null">
+			,mtg_dtl
+		</if>
+		<if test="mtgRecur != null">
+			,mtg_recur
+		</if>
+		<if test="mtgRecurDtl != null">
+			,mtg_recur_dtl
+		</if>
+		)
+		VALUES
+		(
+			now()
+			,now()
+			,#{mtgUserId}
+			,#{mtgComId}
+			,#{mtgTit}
+		<choose>
+			<when test="mtgStartDate != null">
+				,#{mtgStartDate}
+			</when>
+			<otherwise>
+				,FN_DATE_FORMAT_DATE()
+			</otherwise>
+		</choose>
+			,#{mtgEndDate}
+		<choose>
+			<when test="mtgStartTime != null">
+				,#{mtgStartTime}
+			</when>
+			<otherwise>
+				,FN_DATE_FORMAT_TIME()
+			</otherwise>
+		</choose>
+			,#{mtgEndTime}
+			,#{mtgLock}
+		<if test="mtgLockPw != null">
+			,#{mtgLockPw}
+		</if>
+			,#{mtgUrl}
+		<if test="mtgDtl != null">
+			,#{mtgDtl}
+		</if>
+		<if test="mtgRecur != null">
+			,#{mtgRecur}
+		</if>
+		<if test="mtgRecurDtl != null">
+			,#{mtgRecurDtl}
+		</if>
+		)
+	</insert>
+	
+	<insert id="insertMtgRecur" parameterType="MtgDTO">
+		INSERT INTO KT.GV_MTG_RECUR
+		(
+			reg_date
+			,up_date
+			,recur_start_date
+			,recur_end_date
+			,recur_start_time
+			,recur_end_time
+		<if test="mtgAttTit != null and mtgAttPath != null">
+			,recur_att_tit
+			,recur_att_path
+			,att_up_date
+		</if>
+			,mtg_seq
+			,recur_updated
+		)
+		VALUES
+		(
+			now()
+			,now()
+			,#{mtgStartDate}
+			,#{mtgEndDate}
+			,#{mtgStartTime}
+			,#{mtgEndTime}
+		<if test="mtgAttTit != null and mtgAttPath != null">
+			,#{mtgAttTit}
+			,#{mtgAttPath}
+			,now()
+		</if>
+			,#{seq}
+			,false
+		)
+	</insert>
+	
+	<insert id="insertMtgMember" parameterType="Map">
+		INSERT INTO KT.GV_MTG_MEM
+		(
+			mtg_seq
+			,user_id
+		)
+		VALUES
+		(
+			#{mtgSeq}
+			,#{userId}
+		)
+	</insert>
+	
+	<update id="updateMtgAtt" parameterType="MtgDTO">
+		UPDATE KT.GV_MTG
+		SET mtg_att_tit = #{mtgAttTit}
+			,mtg_att_path = #{mtgAttPath}
+		WHERE 1 = 1
+		AND seq = #{seq}
+	</update>
+	
+	<delete id="deleteMtg" parameterType="Long">
+		DELETE FROM KT.GV_MTG
+		WHERE 1 = 1
+		AND seq = #{seq}
+	</delete>
+	
+	<delete id="deleteMtgRecurs" parameterType="Long">
+		DELETE FROM KT.GV_MTG
+		WHERE 1 = 1
+		AND mtg_seq = #{mtgSeq}
+	</delete> 
+
+</mapper>

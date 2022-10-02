@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kt.corp.nobd.mapper.NobdMapper">
+
+	<select id="getNobdList" resultType="NobdDTO">
+		SELECT
+			seq
+			,bd_tit
+			,pub_date
+		FROM KT.GV_NOBD
+		ORDER BY seq DESC
+	</select>
+
+	<select id="getNobdDetail" parameterType="int" resultType="NobdDTO">
+		SELECT
+			seq
+			,bd_tit
+			,bd_dtl
+			,pub_date
+		FROM KT.GV_NOBD
+		WHERE 1 = 1
+		AND seq = #{seq}
+	</select>
+	
+	<insert id="insertNobd" useGeneratedKeys="true" keyProperty="seq" parameterType="NobdDTO">
+		INSERT INTO KT.GV_NOBD
+		(
+			bd_tit
+			,bd_dtl
+			,pub_date
+		)
+		VALUES
+		(
+			#{bdTit}
+			,#{bdDtl}
+			,now()
+		)
+	</insert>
+	
+	<update id="updateNobd" parameterType="NobdDTO">
+		UPDATE KT.GV_NOBD
+		SET bd_tit = #{bdTit}
+			,bd_dtl = #{bdDtl}
+			,pub_date = now()
+		WHERE 1 = 1
+		AND seq = #{seq}
+	</update>
+	
+	<delete id="deleteNobd" parameterType="int">
+		DELETE FROM KT.GV_NOBD
+		WHERE 1 = 1
+		AND seq = #{seq}
+	</delete>
+	
+</mapper>

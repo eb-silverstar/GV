@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kt.corp.schdl.mapper.SchdlMapper">
+    <insert id="insertSchdl" parameterType="SchdlDTO">
+        INSERT INTO KT.GV_SCHDL
+        (
+            USER_ID
+            , FL
+            , SCHDL_DATE
+            , SCHDL_END_DATE
+            , SCHDL_TIT
+        )
+        VALUES
+        (
+            #{userId}
+            , #{fl}
+            , #{schdlDate}
+            , #{schdlEndDate}
+            , #{schdlTit}
+        )
+    </insert>
+
+    <select id="getSchdlMonthlyQty" parameterType="SchdlDTO" resultType="ResSchdlMonthlyQtyDTO">
+        SELECT
+            COUNT(*) SCHDLTOTAL_QTY
+             , (SELECT COUNT(*) FROM GV_SCHDL GS1 WHERE GS1.FL = 'CLD_MTG' AND GS1.USER_ID = #{userId} AND DATE(t.SCHDL_DATE) = DATE(GS1.SCHDL_DATE)) SCHDL_CLD_MTG_QTY
+             , (SELECT COUNT(*) FROM GV_SCHDL GS2 WHERE GS2.FL = 'CLD_EVT' AND GS2.USER_ID = #{userId} AND DATE(t.SCHDL_DATE) = DATE(GS2.SCHDL_DATE)) SCHDL_CLD_EVT_QTY
+             , (SELECT COUNT(*) FROM GV_SCHDL GS4 WHERE GS4.FL = 'EVT' AND GS4.USER_ID = #{userId} AND DATE(t.SCHDL_DATE) = DATE(GS4.SCHDL_DATE)) SCHDL_EVT_QTY
+             , DATE(t.SCHDL_DATE) SCHDL_DATE
+        FROM
+            (SELECT *
+            FROM KT.GV_SCHDL
+            WHERE
+            MONTH(SCHDL_DATE) = MONTH(#{schdlDate})
+            AND YEAR (SCHDL_DATE) = YEAR (#{schdlDate})
+            AND USER_ID = #{userId}) t
+        GROUP BY DATE(t.SCHDL_DATE);
+    </select>
+
+    <select id="getSchdlDetailListDaily" parameterType="SchdlDTO" resultType="ResSchdlDetailDTO">
+        SELECT
+            SCHDL_SEQ
+             , SCHDL_DATE
+             , SCHDL_TIT
+             , DATEDIFF(SCHDL_DATE , CURRENT_TIMESTAMP()) SCHDL_LEFT_OVER
+             , IF(TIMESTAMPDIFF(SECOND, SCHDL_DATE, CURRENT_TIMESTAMP()) &gt; 0, 'true', 'false') SCHDL_OVER
+             , fl
+        FROM GV_SCHDL
+        WHERE 1 = 1
+          AND USER_ID = #{userId}
+          AND DATE(SCHDL_DATE) = DATE(#{schdlDate})
+    </select>
+
+    <select id="getCloseSchdlDetailListDaily" parameterType="SchdlDTO" resultType="ResSchdlDetailDTO">
+        SELECT
+            SCHDL_SEQ
+             , SCHDL_DATE
+             , SCHDL_TIT
+             , DATEDIFF(SCHDL_DATE , CURRENT_TIMESTAMP()) SCHDL_LEFT_OVER
+             , IF(TIMESTAMPDIFF(SECOND, SCHDL_DATE, CURRENT_TIMESTAMP()) &gt; 0, 'true', 'false') SCHDL_OVER
+             , fl
+        FROM GV_SCHDL
+        WHERE 1 = 1
+          AND USER_ID = #{userId}
+          AND IF(TIMESTAMPDIFF(SECOND, SCHDL_DATE, CURRENT_TIMESTAMP()) &gt; 0, 'true', 'false') = 'false'
+        ORDER BY TIMESTAMPDIFF(SECOND, SCHDL_DATE, current_timestamp()) DESC;
+    </select>
+
+    <delete id="deleteSchdlById" parameterType="Long">
+        DELETE FROM KT.GV_SCHDL
+        WHERE 1 = 1
+        AND SCHDL_SEQ = #{schdlSeq}
+    </delete>
+
+</mapper>

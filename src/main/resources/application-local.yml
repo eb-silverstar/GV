@@ -1,0 +1,21 @@
+server:
+    port: 9081
+spring:
+    datasource:
+        driverClassName: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
+        url: jdbc:log4jdbc:mariadb://localhost:3306/kt
+        username: root
+        password: 1111
+        hikari:
+            pool-name: hikari-cp
+            maximum-pool-size: 8
+            minimum-idle: 2
+logging:
+    level:
+        com.kt.corp: debug
+        com.kt.corp.mapper: warn
+        com.kt.corp.comm.util.AjaxView: warn
+
+
+  
+  

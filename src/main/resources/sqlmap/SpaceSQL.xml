@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kt.corp.space.mapper.SpaceMapper">
+
+	<insert id="insertSpaceMember" parameterType="Map">
+		INSERT INTO KT.GV_SPACE_MEM
+		(
+			space_type
+		<if test="spaceId != null">
+			,space_id
+		</if>
+			,user_type
+			,user_id
+		)
+		VALUES
+		(
+			#{spaceType}
+		<if test="spaceId != null">
+			,#{spaceId}
+		</if>
+			,#{userType}
+			,#{userId}
+		)
+		ON DUPLICATE KEY UPDATE
+			space_type = #{spaceType}
+		<choose>
+			<when test="spaceId != null">
+				,space_id = #{spaceId}
+			</when>
+			<otherwise>
+				,space_id = null
+			</otherwise>
+		</choose>
+	</insert>
+	
+	<delete id="deleteSpaceMember" parameterType="String">
+		DELETE FROM KT.GV_SPACE_MEM
+		WHERE 1 = 1
+		AND user_id = #{userId}
+	</delete>
+
+</mapper>

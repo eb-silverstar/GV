@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kt.corp.specialty.mapper.SpecialtyMapper">
+
+	<select id="getSpecialtyList" parameterType="String" resultType="String">
+		SELECT
+			specialty
+		FROM KT.GV_SPECIALTY
+		WHERE 1 = 1
+		AND user_id = #{userId}
+	</select>
+	
+	<select id="getSpecialtyByKeyword" parameterType="String" resultType="String">
+		SELECT
+			specialty
+		FROM KT.GV_SPECIALTY
+		WHERE 1 = 1
+		AND specialty LIKE CONCAT('%',#{keyword},'%')
+		GROUP BY specialty
+		ORDER BY COUNT(1) DESC
+	</select>
+	
+	<insert id="insertSpecialty" parameterType="Map">
+		INSERT INTO KT.GV_SPECIALTY
+		(
+			user_id
+			,specialty
+		)
+		VALUES
+		(
+			#{userId}
+			,#{specialty}
+		)
+	</insert>
+	
+	<delete id="deleteSpecialty" parameterType="String">
+		DELETE FROM KT.GV_SPECIALTY
+		WHERE 1 = 1
+		AND user_id = #{userId}
+	</delete>
+
+</mapper>

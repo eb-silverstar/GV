@@ -1,0 +1,312 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kt.corp.member.mapper.MemberMapper">
+
+	<select id="existFavMember" parameterType="UpdateMemberDTO" resultType="boolean">
+		SELECT
+			EXISTS (
+				SELECT 1
+				FROM KT.GV_MEM_FAV
+				WHERE 1 = 1
+				AND user_id = #{userId}
+				AND mem_id = #{memId}
+			)
+	</select>
+	
+	<select id="existPteMember" parameterType="Map" resultType="boolean">
+		SELECT
+			EXISTS (
+				SELECT 1
+				FROM KT.GV_PTE_MEM
+				WHERE 1 = 1
+				AND user_id = #{userId}
+				AND mem_id = #{memId}
+			)
+	</select>
+
+	<select id="existPteGroup" parameterType="Map" resultType="boolean">
+		SELECT
+			EXISTS (
+				SELECT 1
+				FROM KT.GV_PTE_GRP
+				WHERE 1 = 1
+				AND grp_id = #{grpId}
+				AND user_id = #{userId}
+			)
+	</select>
+	
+	<select id="existPteGroupMember" parameterType="UpdateMemberDTO" resultType="boolean">
+		SELECT
+			EXISTS (
+				SELECT 1
+				FROM KT.GV_PTE_GRP_MEM
+				WHERE 1 = 1
+				AND grp_id = #{grpId}
+				AND mem_id = #{memId}
+			)
+	</select>
+	
+	<select id="existComMember" parameterType="UpdateMemberDTO" resultType="boolean">
+		SELECT
+			EXISTS (
+				SELECT 1
+				FROM KT.GV_USER usr
+				LEFT JOIN KT.GV_EMPLOYEE emp ON usr.user_id = emp.user_id
+				LEFT JOIN KT.GV_COMPANY com ON emp.com_id = com.com_id
+				WHERE 1 = 1
+				AND com.com_id IN (
+					SELECT com_id
+					FROM KT.GV_EMPLOYEE
+					WHERE user_id = #{userId}
+					)
+				AND usr.user_id = #{memId}
+			)
+	</select>
+
+	<select id="getMember" parameterType="String" resultType="MemberDTO">
+		SELECT
+			usr.user_id
+			,CAST(AES_DECRYPT(UNHEX(usr.nm),SHA2('a1s2d3f4g5h6j7k8l9!',512)) AS CHAR) AS nm
+			,com.com_nm
+			,jt.job_tit
+			,stat.user_state_code
+			,stat.user_state
+			,emp.auth
+		FROM KT.GV_USER usr
+		LEFT JOIN KT.GV_EMPLOYEE emp ON usr.user_id = emp.user_id
+		LEFT JOIN KT.GV_COMPANY com ON emp.com_id = com.com_id
+		LEFT JOIN KT.GV_COMPANY_JOB_TIT jt ON emp.job_tit = jt.job_tit_id
+		LEFT JOIN KT.GV_USER_STATE stat ON usr.user_id = stat.user_id
+		WHERE 1 = 1
+		AND usr.user_id = #{userId}
+	</select>
+	
+	<select id="getFavMembers" parameterType="String" resultType="MemberDTO">
+		SELECT
+			usr.user_id
+			,CAST(AES_DECRYPT(UNHEX(usr.nm),SHA2('a1s2d3f4g5h6j7k8l9!',512)) AS CHAR) AS nm
+			,com.com_nm
+			,jt.job_tit
+			,stat.user_state_code
+			,stat.user_state
+		FROM KT.GV_USER usr
+		LEFT JOIN KT.GV_EMPLOYEE emp ON usr.user_id = emp.user_id
+		LEFT JOIN KT.GV_COMPANY com ON emp.com_id = com.com_id
+		LEFT JOIN KT.GV_COMPANY_JOB_TIT jt ON emp.job_tit = jt.job_tit_id
+		LEFT JOIN KT.GV_USER_STATE stat ON usr.user_id = stat.user_id
+		LEFT JOIN KT.GV_MEM_FAV fav ON usr.user_id = fav.mem_id
+		WHERE 1 = 1
+		AND fav.user_id = #{userId}
+	</select>
+	
+	<select id="getPteMembers" parameterType="String" resultType="MemberDTO">
+		SELECT
+			usr.user_id
+			,CAST(AES_DECRYPT(UNHEX(usr.nm),SHA2('a1s2d3f4g5h6j7k8l9!',512)) AS CHAR) AS nm
+			,com.com_nm
+			,jt.job_tit
+			,stat.user_state_code
+			,stat.user_state
+		FROM KT.GV_USER usr
+		LEFT JOIN KT.GV_EMPLOYEE emp ON usr.user_id = emp.user_id
+		LEFT JOIN KT.GV_COMPANY com ON emp.com_id = com.com_id
+		LEFT JOIN KT.GV_COMPANY_JOB_TIT jt ON emp.job_tit = jt.job_tit_id
+		LEFT JOIN KT.GV_USER_STATE stat ON usr.user_id = stat.user_id
+		LEFT JOIN KT.GV_PTE_MEM mem ON usr.user_id = mem.mem_id
+		WHERE 1 = 1
+		AND mem.user_id = #{userId}
+	</select>
+	
+	<select id="getComTeams" parameterType="String" resultType="ComTeamDTO">
+		SELECT
+			team.team_id
+			,team.team
+		FROM KT.GV_COMPANY_TEAM team
+		LEFT JOIN KT.GV_EMPLOYEE emp ON team.com_id = emp.com_id
+		WHERE 1 = 1
+		AND emp.user_id = #{userId}
+	</select>
+	
+	<select id="getTeamMembers" parameterType="Map" resultType="MemberDTO">
+		SELECT
+			usr.user_id
+			,CAST(AES_DECRYPT(UNHEX(usr.nm),SHA2('a1s2d3f4g5h6j7k8l9!',512)) AS CHAR) AS nm
+			,com.com_nm
+			,jt.job_tit
+			,team.team
+			,stat.user_state_code
+			,stat.user_state
+			,emp.reg_date
+		FROM KT.GV_USER usr
+		LEFT JOIN KT.GV_EMPLOYEE emp ON usr.user_id = emp.user_id
+		LEFT JOIN KT.GV_COMPANY com ON emp.com_id = com.com_id
+		LEFT JOIN KT.GV_COMPANY_JOB_TIT jt ON emp.job_tit = jt.job_tit_id
+		LEFT JOIN KT.GV_COMPANY_TEAM team ON emp.team_id = team.team_id
+		LEFT JOIN KT.GV_USER_STATE stat ON usr.user_id = stat.user_id
+		WHERE 1 = 1
+		AND emp.team_id = #{teamId}
+		AND usr.user_id != #{userId}
+	</select>
+	
+	<select id="getPteGroup" parameterType="Long" resultType="PteGroupDTO">
+		SELECT
+			grp_id
+			,grp_nm
+		FROM KT.GV_PTE_GRP
+		WHERE 1 = 1
+		AND grp_id = #{grpId}
+	</select>
+	
+	<select id="getPteGroups" parameterType="String" resultType="PteGroupDTO">
+		SELECT
+			grp_id
+			,grp_nm
+		FROM KT.GV_PTE_GRP
+		WHERE 1 = 1
+		AND user_id = #{userId}
+	</select>
+	
+	<select id="getPteGroupMembers" parameterType="Long" resultType="MemberDTO">
+		SELECT
+			usr.user_id
+			,CAST(AES_DECRYPT(UNHEX(usr.nm),SHA2('a1s2d3f4g5h6j7k8l9!',512)) AS CHAR) AS nm
+			,com.com_nm
+			,jt.job_tit
+			,stat.user_state_code
+			,stat.user_state
+		FROM KT.GV_USER usr
+		LEFT JOIN KT.GV_EMPLOYEE emp ON usr.user_id = emp.user_id
+		LEFT JOIN KT.GV_COMPANY com ON emp.com_id = com.com_id
+		LEFT JOIN KT.GV_COMPANY_JOB_TIT jt ON emp.job_tit = jt.job_tit_id
+		LEFT JOIN KT.GV_USER_STATE stat ON usr.user_id = stat.user_id
+		LEFT JOIN KT.GV_PTE_GRP_MEM mem ON usr.user_id = mem.mem_id
+		WHERE 1 = 1
+		AND mem.grp_id = #{grpId}
+	</select>
+	
+	<select id="getMemberByName" parameterType="Map" resultType="MemberDTO">
+		SELECT
+			usr.user_id
+			,CAST(AES_DECRYPT(UNHEX(usr.nm),SHA2('a1s2d3f4g5h6j7k8l9!',512)) AS CHAR) AS nm
+			,com.com_nm
+			,jt.job_tit
+			,team.team
+		FROM KT.GV_USER usr
+		LEFT JOIN KT.GV_EMPLOYEE emp ON usr.user_id = emp.user_id
+		LEFT JOIN KT.GV_COMPANY com ON emp.com_id = com.com_id
+		LEFT JOIN KT.GV_COMPANY_JOB_TIT jt ON emp.job_tit = jt.job_tit_id
+		LEFT JOIN KT.GV_COMPANY_TEAM team ON emp.team_id = team.team_id
+		LEFT JOIN KT.GV_PTE_MEM mem ON usr.user_id = mem.mem_id
+		WHERE 1 = 1
+		AND (
+			com.com_id IN (
+				SELECT com_id
+				FROM KT.GV_EMPLOYEE
+				WHERE user_id = #{userId}
+				)
+			AND usr.user_id != #{userId}
+			OR mem.user_id = #{userId}
+		)
+		AND (
+			AES_DECRYPT(UNHEX(usr.nm),SHA2('a1s2d3f4g5h6j7k8l9!',512)) LIKE CONCAT('%',#{keyword},'%')
+			OR com.com_nm LIKE CONCAT('%',#{keyword},'%')
+		)
+	</select>
+	
+	<insert id="insertFavMember" parameterType="UpdateMemberDTO">
+		INSERT INTO KT.GV_MEM_FAV
+		(
+			user_id
+			,mem_id
+		)
+		VALUES
+		(
+			#{userId}
+			,#{memId}
+		)
+	</insert>
+	
+	<insert id="insertPteMember" parameterType="UpdateMemberDTO">
+		INSERT INTO KT.GV_PTE_MEM
+		(
+			user_id
+			,mem_id
+		)
+		VALUES
+		(
+			#{userId}
+			,#{memId}
+		)
+	</insert>
+	
+	<insert id="insertPteGroupMember" parameterType="Map">
+		INSERT INTO KT.GV_PTE_GRP_MEM
+		(
+			grp_id
+			,mem_id
+		)
+		VALUES
+		(
+			#{grpId}
+			,#{memId}
+		)
+	</insert>
+	
+	<insert id="insertPteGroup" useGeneratedKeys="true" keyProperty="grpId" parameterType="UpdatePteGroupDTO">
+		INSERT INTO KT.GV_PTE_GRP
+		(
+			user_id
+			,grp_nm
+		)
+		VALUES
+		(
+			#{userId}
+			,#{grpNm}
+		)
+	</insert>
+	
+	<update id="updatePteGroup" parameterType="UpdatePteGroupDTO">
+		UPDATE KT.GV_PTE_GRP
+		SET grp_nm = #{grpNm}
+		WHERE grp_id = #{grpId}
+	</update>
+	
+	<delete id="deleteFavMember" parameterType="UpdateMemberDTO">
+		DELETE FROM KT.GV_MEM_FAV
+		WHERE 1 = 1
+		AND user_id = #{userId}
+		AND mem_id = #{memId}
+	</delete>
+	
+	<delete id="deletePteMember" parameterType="UpdateMemberDTO">
+		DELETE FROM KT.GV_PTE_MEM
+		WHERE 1 = 1
+		AND user_id = #{userId}
+		AND mem_id = #{memId}
+	</delete>
+	
+	<delete id="deletePteGroup" parameterType="Long">
+		DELETE FROM KT.GV_PTE_GRP
+		WHERE 1 = 1
+		AND grp_id = #{grpId}
+	</delete>
+	
+	<delete id="deletePteGroupMember" parameterType="UpdateMemberDTO">
+		DELETE FROM KT.GV_PTE_GRP_MEM
+		WHERE 1 = 1
+		AND mem_id = #{memId}
+		AND grp_id IN (
+			SELECT grp_id
+			FROM KT.GV_PTE_GRP
+			WHERE 1 = 1
+			AND user_id = #{userId}
+		)
+	</delete>
+	
+	<delete id="deletePteGroupMembersByGrpId" parameterType="Long">
+		DELETE FROM KT.GV_PTE_GRP_MEM
+		WHERE 1 = 1
+		AND grp_id = #{grpId}
+	</delete>
+
+</mapper>

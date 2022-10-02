@@ -1,0 +1,64 @@
+server:
+    port: 9081
+    ssl: 
+      enabled: true
+      key-alias: tomcat
+      key-store:  classpath:keystore.p12
+      key-store-type: PKCS12
+      key-store-password: gv1234!
+      #key-password: gv1234!
+      #key-store-provider: SUN      
+      
+spring:
+    datasource:
+        driverClassName: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
+        url: jdbc:log4jdbc:mariadb://121.138.172.226:3306/KT
+        username: root
+        password: wlsb123!
+        hikari:
+            pool-name: hikari-cp
+            maximum-pool-size: 8
+            minimum-idle: 2
+logging:
+    level:
+        com.kt.corp: debug
+        com.kt.corp.mapper: warn
+        com.kt.corp.comm.util.AjaxView: warn
+
+resources:
+    connect-path: /res/**
+    resource-path: file:/home/gnew/data/res/
+    upload-path: /home/gnew/data/res/
+    
+######## Admin Mail
+admin:
+  mail:
+    id : ncy7697@gmail.com
+    pwd : gmylmcyoxtdukhmf
+    title : genieValley
+    msg : http://gnew.genidomain.p-e.kr
+    url: http://121.138.172.226
+  smtp:  
+    host : smtp.gmail.com
+    port : 587
+#    port : 465
+    
+######## JWT
+jwt:
+  base64:
+    secret: secretKeyGnewAuthorizationJwtManageTokenGenieValley
+    
+######## File    
+file:
+  metaweb:
+    main-size: 5242880
+    intro-size: 5242880
+  
+######## ReCaptcha
+capcha: 
+  client-key: 6LdYyD0iAAAAAFnEFMy6nDC67npUMFmWzY8l0dml
+  server-key: 6LdYyD0iAAAAACaBqdS3SpWsnutvAb2FTMoequ48
+  
+  
+  
+  

@@ -1,0 +1,49 @@
+spring:
+    profiles:
+        active:
+             - dev
+    config:
+        location: classpath:/config/config.properties
+    messages:
+        basename: messages/message
+    devtools:
+        livereload:
+            enabled: true
+        restart:
+            enabled: true
+            exclude: META-INF/maven/**, META-INF/resources/**, static/**, public/**, templates/**,
+    mvc:
+        view:
+            prefix: /WEB-INF/jsp
+            suffix: .jsp
+    servlet:
+        multipart:
+            enabled: true
+            max-file-size: 100MB
+            max-request-size: 100MB
+
+logging:
+    level:
+        org:
+            springframework:
+                web: ERROR
+
+
+server:
+  servlet:
+    session:
+      timeout: 300m
+       
+batis:
+    config-location: classpath:/sqlmap/sql-mapper-config.xml
+    mapper-locations: sqlmap/*SQL.xml
+
+mybatis: 
+  type-aliases-package: com.kt.corp
+  mapper-locations: sqlmap/*SQL.xml
+  configuration:
+    multiple-result-sets-enabled: true
+    use-column-label: true
+    map-underscore-to-camel-case: true
+
+

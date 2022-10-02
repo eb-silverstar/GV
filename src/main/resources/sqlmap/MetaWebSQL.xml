@@ -1,0 +1,539 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kt.corp.metaweb.mapper.MetawebMapper">
+
+	<select id="selectSpaceMember" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT 
+			sm.user_id 			AS userId				-- 유저 아이디
+			, sm.nm				AS userNm			-- 유저 이름
+			, sm.user_type	AS userType		-- 유저 유형
+			, gc.com_nm 		AS comNm			-- 회사명
+			, team.team 		AS team				-- 부서
+			, jt.job_tit 			AS jobTit				-- 직책
+			, gc.com_id 			AS comId				-- 회사 아이디
+		FROM (
+			SELECT 
+				IFNULL(sm.user_id, gg.guest_id) AS user_id  
+				, sm.user_type
+				, IFNULL(
+					(CAST(AES_DECRYPT(UNHEX(gu.nm),SHA2('a1s2d3f4g5h6j7k8l9!',512)) AS CHAR))
+					, gg.guest_nick_nm 
+				) AS nm	
+			FROM KT.GV_SPCE_MEM sm
+			LEFT JOIN KT.GV_USER gu ON sm.user_id = gu.user_id
+			LEFT JOIN KT.GV_GUEST gg ON sm.user_id = gg.guest_id 	
+			WHERE space_id = #{spaceId}
+				AND space_type = #{spaceType}
+		) sm
+		LEFT JOIN KT.GV_EMPLOYEE ge ON sm.user_id = ge.user_id 
+		LEFT JOIN KT.GV_COMPANY gc  ON ge.com_id = gc.com_id 
+		LEFT JOIN KT.GV_COMPANY_JOB_TIT jt ON ge.job_tit = jt.job_tit_id
+		LEFT JOIN KT.GV_COMPANY_TEAM team ON ge.team_id = team.team_id
+		WHERE 1=1
+		<if test='userNm != null and !userNm.equals("")'>
+			AND sm.nm LIKE CONCAT('%', #{userNm}, '%')
+		</if>
+	</select>
+	
+	<select id="selectMetaWebAboutUs" parameterType="String" resultType="java.util.Map">
+		SELECT 
+			gc.COM_ID  		AS comId
+			-- , gc.IMG_LOG 		AS imgLog		-- 로그 이미지
+			, gc.COM_NM 		AS comNm		-- 회사이름
+			, gc.COM_TYPE 	AS comType	-- 회사유형
+			, gc.COM_INTRO AS comIntro	-- 회사 소개
+			, gc.COM_ADD 	AS comAdd		-- 회사 주소
+			, gc.COM_NUM2 AS comNum	-- 회사 전화번호
+			, (SELECT GROUP_CONCAT(gcut.utztn_tech) AS utztn_tech 
+				FROM KT.GV_COMPANY_UTZTN_TECH gcut 
+				WHERE gcut.com_id = gc.com_id) 							AS utztnTech 			-- 기술
+			, (SELECT GROUP_CONCAT(gcis.invest_stage) AS invest_stage 
+				FROM KT.GV_COMPANY_INVEST_STAGE gcis 
+				WHERE gcis.com_id = gc.com_id) 								AS investStage			-- 투자 단계
+			, (SELECT GROUP_CONCAT(gcbf.BSNS_FIELD) AS BSNS_FIELD 
+				FROM KT.GV_COMPANY_BSNS_FIELD gcbf 
+				WHERE gcbf.com_id = gc.com_id) 								AS bsnsField			-- 비즈니스
+			, (SELECT GROUP_CONCAT(gct.TEAM) AS team
+				from KT.GV_COMPANY_TEAM gct
+				WHERE gct.COM_ID = gc.com_id) 								AS team					-- 팀
+			, (SELECT GROUP_CONCAT(gcjt.JOB_TIT) AS JOB_TIT
+				from KT.GV_COMPANY_JOB_TIT gcjt
+				WHERE gcjt.COM_ID = gc.com_id) 							AS jobTit				-- 직책
+		from KT.GV_COMPANY gc
+		WHERE gc.com_id = #{comId}
+	</select>
+	
+	<select id="selectMetaWebCnt" resultType="int">
+		SELECT MAX(seq) + 1 FROM KT.GV_META_WEB
+	</select>
+
+	<insert id="insertMetaWeb"  parameterType="MetaWebDTO">
+		INSERT INTO KT.GV_META_WEB
+		(
+			user_id 
+			, meta_web_id 
+			, com_id 
+			, com_nm 
+			, bsns_vido 
+			, bsns_img 
+			, bsns_phrase 
+			, bsns_intro 
+			, bsns_url 
+		)
+		VALUES
+		(
+			#{userId}
+			,#{metaWebId}
+			,#{comId} 
+			,#{comNm} 
+			,#{bsnsVido} 
+			,#{bsnsImg} 
+			,#{bsnsPhrase} 
+			,#{bsnsIntro} 
+			,#{bsnsUrl}
+		)
+	</insert>
+	
+	<update id="updateMetaWeb" parameterType="MetaWebDTO">
+		UPDATE KT.GV_META_WEB
+		SET meta_web_id = #{metaWebId}
+		<if test='userId != null and !userId.equals("")'>
+			, user_id						= #{userId}
+		</if> 
+		<if test='metaWebId != null and !metaWebId.equals("")'>
+			, meta_web_id 			= #{metaWebId}
+		</if>
+		<if test='comId != null and !comId.equals("")'>
+			, com_id 						= #{comId}
+		</if>
+		<if test='comNm != null and !comNm.equals("")'>
+			, com_nm 					= #{comNm}
+		</if>
+		<if test='bsnsVido != null and !bsnsVido.equals("")'>
+			, bsns_vido 					= #{bsnsVido}
+		</if>
+		<if test='bsnsImg != null and !bsnsImg.equals("")'>
+			, bsns_img 					= #{bsnsImg}
+		</if>
+		<if test='bsnsPhrase != null and !bsnsPhrase.equals("")'>
+			, bsns_phrase 			= #{bsnsPhrase}
+		</if>
+		<if test='bsnsIntro != null and !bsnsIntro.equals("")'>
+			, bsns_intro 				= #{bsnsIntro}
+		</if>
+		<if test='bsnsUrl != null and !bsnsUrl.equals("")'>
+			, bsns_url 					= #{bsnsUrl}
+		</if>
+		WHERE meta_web_id = #{metaWebId}
+		 <if test='comId != null and !comId.equals("")'>
+			AND com_id = #{comId}
+		 </if>
+	</update>
+	
+	<select id="selectMetaWeb" parameterType="String" resultType="MetaWebDTO">
+		SELECT 
+			user_id					AS 	userId
+			, meta_web_id 		AS	metaWebId
+			, com_id 					AS	comId
+			, com_nm 				AS	comNm
+			, bsns_vido 				AS	bsnsVido
+			, bsns_img 				AS	bsnsImg
+			, bsns_phrase 		AS	bsnsPhrase
+			, bsns_intro 			AS	bsnsIntro
+			, bsns_url 				AS 	bsnsUrl
+			, (SELECT GROUP_CONCAT(gcut.utztn_tech) AS utztn_tech 
+				FROM KT.GV_COMPANY_UTZTN_TECH gcut 
+				WHERE gcut.com_id = gmw.com_id) AS utztnTech 			-- 태그
+			, (SELECT GROUP_CONCAT(gcis.invest_stage) AS invest_stage 
+				FROM KT.GV_COMPANY_INVEST_STAGE gcis 
+				WHERE gcis.com_id = gmw.com_id) AS investStage			-- 태그
+		FROM KT.GV_META_WEB	gmw
+		WHERE 1=1
+		 <if test='comId != null and !comId.equals("")'>
+			AND gmw.com_id = #{comId}
+		 </if>
+	</select>
+	
+	<select id="selectMetaWebId" parameterType="int" resultType="MetaWebDTO">
+		SELECT 
+			user_id					AS 	userId
+			, meta_web_id 		AS	metaWebId
+			, com_id 					AS	comId
+			, seq							AS 	seq
+		FROM KT.GV_META_WEB	
+		WHERE meta_web_id = #{metaWebId}
+	</select>
+	
+	<insert id="insertMetaWebHist"  parameterType="MetaWebHistDTO">
+		INSERT INTO KT.GV_META_WEB_HIST
+		(
+			meta_web_id
+			, hist_year 
+			, hist_mm 
+			, hist_dd 
+			, hist_dtl 
+		)
+		VALUES
+		(
+			(SELECT meta_web_id  FROM KT.GV_META_WEB WHERE com_id = #{comId})
+			, #{histYear} 
+			, #{histMm} 
+			, #{histDd} 
+			, #{histDtl} 
+		)
+	</insert>
+	
+	<update id="updateMetaWebHist" parameterType="MetaWebHistDTO">
+		UPDATE KT.GV_META_WEB_HIST
+		SET meta_web_id = #{metaWebId}
+		<if test='histYear != null and !histYear.equals("")'>
+			, hist_year						= #{histYear}
+		</if> 
+		<if test='histMm != null and !histMm.equals("")'>
+			, hist_mm 			= #{histMm}
+		</if>
+		<if test='histDd != null and !histDd.equals("")'>
+			, hist_dd 						= #{histDd}
+		</if>
+		<if test='histDtl != null and !histDtl.equals("")'>
+			, hist_dtl 					= #{histDtl}
+		</if>
+		WHERE meta_web_id = #{metaWebId}
+			AND seq = #{seq}
+	</update>
+	
+	<select id="selectMetaWebHist" parameterType="MetaWebHistDTO" resultType="MetaWebHistDTO">
+		SELECT
+			seq 
+			, meta_web_id		AS	metaWebId
+			, hist_year 			AS	histYear
+			, hist_mm 			AS	histMm
+			, hist_dd 				AS	histDd
+			, hist_dtl 				AS	histDtl
+		FROM KT.GV_META_WEB_HIST
+		WHERE META_WEB_ID = #{metaWebId}
+		<if test='seq != null and seq > 0'>
+			AND seq = #{seq}
+		</if>
+		ORDER BY hist_year DESC, hist_mm DESC, hist_mm DESC, hist_dd DESC
+	</select>
+	
+	<insert id="insertMetaWebNews"  parameterType="MetaWebNewsDTO">
+		INSERT INTO KT.GV_META_WEB_NEWS
+		(
+			meta_web_id
+			, news_url 
+		)
+		VALUES
+		(
+			(SELECT meta_web_id  FROM KT.GV_META_WEB WHERE com_id = #{comId})
+			, #{newsUrl}
+		)
+	</insert>
+	
+	<update id="updateMetaWebNews" parameterType="MetaWebNewsDTO">
+		UPDATE KT.GV_META_WEB_NEWS
+		SET meta_web_id = #{metaWebId}
+		<if test='newsUrl != null and !newsUrl.equals("")'>
+			, news_url						= #{newsUrl}
+		</if> 
+		WHERE meta_web_id = #{metaWebId}
+			AND seq = #{seq}
+	</update>
+	
+	<select id="selectMetaWebNews" parameterType="MetaWebNewsDTO" resultType="MetaWebNewsDTO">
+		SELECT
+			seq 
+			, meta_web_id		AS	metaWebId
+			, news_url 			AS	newsUrl
+		FROM KT.GV_META_WEB_NEWS
+		WHERE META_WEB_ID = #{metaWebId}
+		<if test='seq != null and seq > 0'>
+			AND seq = #{seq}
+		</if>
+	</select>
+	
+	<insert id="insertMetaWebObj"  parameterType="MetaWebObjDTO">
+		INSERT INTO KT.GV_META_WEB_OBJ
+		(
+			meta_web_id
+			, obj_nm 
+			, cntnts_yn 
+			, cntnts_tit 
+			, cntnts_vido 
+			, cntnts_img 
+			, cntnts_dtl 
+			, cntnts_url 
+		)
+		VALUES
+		(
+			(SELECT meta_web_id  FROM KT.GV_META_WEB WHERE com_id = #{comId})
+			,#{objNm} 
+			,#{cntntsYn} 
+			,#{cntntsTit} 
+			,#{cntntsVido} 
+			,#{cntntsImg} 
+			,#{cntntsDtl} 
+			,#{cntntsUrl}
+		)
+	</insert>
+	
+	<update id="updateMetaWebObj" parameterType="MetaWebObjDTO">
+		UPDATE KT.GV_META_WEB_OBJ
+		SET meta_web_id = #{metaWebId}
+		<if test='objNm != null and !objNm.equals("")'>
+			, obj_nm						= #{objNm}
+		</if> 
+		<if test='cntntsYn != null and !cntntsYn.equals("")'>
+			, cntnts_yn 			= #{cntntsYn}
+		</if>
+		<if test='cntntsTit != null and !cntntsTit.equals("")'>
+			, cntnts_tit 						= #{cntntsTit}
+		</if>
+		<if test='cntntsVido != null and !cntntsVido.equals("")'>
+			, cntnts_vido 					= #{cntntsVido}
+		</if>
+		<if test='cntntsImg != null and !cntntsImg.equals("")'>
+			, cntnts_img 					= #{cntntsImg}
+		</if>
+		<if test='cntntsDtl != null and !cntntsDtl.equals("")'>
+			, cntnts_dtl 					= #{cntntsDtl}
+		</if>
+		<if test='cntntsUrl != null and !cntntsUrl.equals("")'>
+			, cntnts_url 			= #{cntntsUrl}
+		</if>
+		WHERE meta_web_id = #{metaWebId}
+	</update>
+	
+	<select id="selectMetaWebObj" parameterType="int" resultType="MetaWebObjDTO">
+		SELECT 
+			meta_web_id		AS	metaWebId
+			, obj_nm 				AS	objNm
+			, cntnts_yn 			AS	cntntsYn
+			, cntnts_tit 			AS	cntntsTit
+			, cntnts_vido 		AS	cntntsVido
+			, cntnts_img 		AS	cntntsImg
+			, cntnts_dtl 		AS	cntntsDtl
+			, cntnts_url 		AS	cntntsUrl
+		FROM KT.GV_META_WEB_OBJ
+		WHERE meta_web_id = #{metaWebId}
+	</select>
+	
+	<select id="selectMetaWebIntroImgCnt" parameterType="int" resultType="int">
+		SELECT MAX(seq) + 1 FROM KT.GV_META_INTRO_IMG 
+	</select>
+	
+	<insert id="insertMetaWebIntroImg" useGeneratedKeys="true" keyProperty="seq"  parameterType="java.util.Map">
+		INSERT INTO KT.GV_META_INTRO_IMG
+		(
+			meta_web_id
+			, meta_intro_img 
+		)
+		VALUES
+		(
+			#{metaWebId} 
+			,#{metaIntroImg} 
+		)
+	</insert>
+	
+	<select id="selectMetaWebIntroImg" parameterType="int" resultType="java.util.Map">
+		SELECT 
+			seq 
+			, meta_web_id 		AS	metaWebId
+			, meta_intro_img 	AS	metaIntroImg 
+		FROM KT.GV_META_INTRO_IMG 
+		WHERE meta_web_id = #{metaWebId}
+		ORDER BY seq
+	</select>
+	
+	<delete id="deleteMetaIntroImg" parameterType="java.util.List">
+		DELETE FROM KT.GV_META_INTRO_IMG
+		WHERE seq IN 
+		  <foreach item="item" index="seq" collection="delList" open="(" separator="," close=")">
+		        #{item}
+		  </foreach>
+	</delete>
+	
+	<insert id="insertMetaWebGuidance"  parameterType="java.util.Map">
+		INSERT INTO KT.GV_META_WEB_GUIDANCE
+		(
+			meta_web_id
+			, com_id
+			, guidance_user_id
+		)
+		VALUES
+		(
+			#{metaWebId} 
+			,#{comId} 
+			,#{userId} 
+		)
+	</insert>
+	
+	<select id="selectMetaWebGuidance" parameterType="MetaWebDTO" resultType="java.util.Map">
+		SELECT
+			mwg.meta_web_id 				AS metaWebId 
+			, mwg.com_id 						AS comId 
+			, mwg.guidance_user_id		AS userId 
+			, us.USER_STATE_CODE  		AS userStateCode
+		FROM KT.GV_META_WEB_GUIDANCE	mwg
+		LEFT JOIN KT.GV_USER_STATE us
+		ON mwg.guidance_user_id = us.user_id
+		WHERE 1=1
+		<if test='comId != null and !comId.equals("")'>
+			AND mwg.com_id = #{comId}
+		</if>
+		<if test='metaWebId != null and !metaWebId.equals("")'>
+			AND mwg.meta_web_id = #{metaWebId}
+		</if>
+		<if test='userId != null and !userId.equals("")'>
+			AND mwg.guidance_user_id = #{userId}
+		</if>
+	</select>
+	
+	<insert id="insertMetaWebTeam"  parameterType="MetaWebTeamDTO">
+		INSERT INTO KT.GV_META_WEB_TEAM(
+			meta_web_id
+			, team_tit1 
+			, team_dtl1 
+			, team_tit2 
+			, team_dtl2
+			, team_tit3 
+			, team_dtl3
+			, team_tit4 
+			, team_dtl4
+		)
+		VALUES(
+			#{metaWebId}
+			,#{teamTit1} 
+			,#{teamDtl1}
+			,#{teamTit2} 
+			,#{teamDtl2}
+			,#{teamTit3}
+			,#{teamDtl3}
+			,#{teamTit4}
+			,#{teamDtl4}		
+		)
+	</insert>
+	
+	<select id="selectMetaWebTeam" parameterType="int" resultType="MetaWebTeamDTO">
+		SELECT
+			meta_web_id		AS metaWebId
+			, team_tit1 			AS teamTit1
+			, team_dtl1 		AS teamDtl1
+			, team_tit2 			AS teamTit2
+			, team_dtl2			AS teamDtl2
+			, team_tit3 			AS teamTit3
+			, team_dtl3			AS teamDtl3
+			, team_tit4 			AS teamTit4
+			, team_dtl4 		AS teamDtl4
+		FROM KT.GV_META_WEB_TEAM
+		WHERE	meta_web_id = #{metaWebId}
+	</select>
+	
+	<delete id="deleteMetaWebTeam" parameterType="int">
+		DELETE FROM KT.GV_META_WEB_TEAM
+		WHERE	meta_web_id = #{metaWebId}
+	</delete>
+	
+	<insert id="insertMetaWebEmpmn"  parameterType="MetaWebEmpmnDTO">
+		INSERT INTO KT.GV_META_WEB_EMPMN(
+			meta_web_id
+			, dty 						-- 직무
+			, emplym 				-- 고용형태
+			, career 					-- 경력
+			, empmn_year 		-- 연차
+			, stdr 						-- 기준
+			, ordtm_empmn 			-- 상시채용 여부
+			, empmn_start_date 		-- 채용 시작일
+			, empmn_end_date 		-- 채용 마감일
+			, empmn_url 					-- 공고 url
+			, reg_date 						-- 생성 날짜
+			, up_date 						-- 수정 날짜
+		)
+		VALUES(
+			#{metaWebId} 
+			, #{dty} 					
+			, #{emplym} 				
+			, #{career} 				
+			, #{empmnYear} 	
+			, #{stdr} 			
+			, #{ordtmEmpmn} 	
+			, STR_TO_DATE(#{startDate}, '%Y-%m-%d')
+			, STR_TO_DATE(#{endDate}, '%Y-%m-%d')
+			, #{empmnUrl}
+			, NOW()
+			, NOW()
+		);
+	</insert>
+	
+	<select id="selectMetaWebEmpmn" parameterType="MetaWebEmpmnDTO" resultType="MetaWebEmpmnDTO">
+		SELECT 
+			seq
+			, meta_web_id 		AS metaWebId
+			, dty 						AS dty
+			, emplym 				AS emplym
+			, career 					AS career
+			, empmn_year 		AS empmnYear
+			, stdr 						AS stdr
+			, ordtm_empmn		AS ordtmEmpmn 
+			, empmn_url 			AS empmnUrl 
+			, DATE_FORMAT(empmn_start_date, '%y-%m-%d') 	AS startDate
+			, DATE_FORMAT(empmn_end_date, '%y-%m-%d') 	AS endDate
+			, DATE_FORMAT(reg_date, '%Y-%m-%d') 					AS regDate
+			, DATE_FORMAT(up_date, '%Y-%m-%d') 					AS chgDate
+		FROM KT.GV_META_WEB_EMPMN
+		WHERE meta_web_id = #{metaWebId} 
+		<if test='seq != null and seq > 0'>
+			AND seq = #{seq}
+		</if>
+	</select>
+	
+	<delete id="deleteMetaWebEmpmn" parameterType="int">
+		DELETE FROM KT.GV_META_WEB_EMPMN
+		WHERE	seq = #{seq}
+	</delete>
+	
+	<update id="updateMetaWebEmpmn" parameterType="MetaWebEmpmnDTO">
+		UPDATE KT.GV_META_WEB_EMPMN
+		SET up_date = NOW()
+		<if test='dty != null and !dty.equals("")'>
+			, dty						= #{dty}
+		</if> 
+		<if test='emplym != null and !emplym.equals("")'>
+			, emplym 			= #{emplym}
+		</if>
+		<if test='career != null and !career.equals("")'>
+			, career 				= #{career}
+		</if>
+		<if test='empmnYear != null and !empmnYear.equals("")'>
+			, empmn_year 	= #{empmnYear}
+		</if>
+		<if test='stdr != null and !stdr.equals("")'>
+			, stdr 					= #{stdr}
+		</if>
+		<if test='startDate != null and !startDate.equals("")'>
+			, empmn_start_date			= STR_TO_DATE(#{startDate}, '%Y-%m-%d')
+		</if>
+		<if test='endDate != null and !endDate.equals("")'>
+			, empmn_end_date 			= STR_TO_DATE(#{endDate}, '%Y-%m-%d')
+		</if>
+		<if test='empmnUrl != null and !empmnUrl.equals("")'>
+			, empmn_url 						= #{empmnUrl}
+		</if>
+		WHERE meta_web_id = #{metaWebId}
+			AND seq = #{seq}
+	</update>
+	
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+

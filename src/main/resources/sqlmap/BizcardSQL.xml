@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kt.corp.bizcard.mapper.BizcardMapper">
+
+	<select id="existBizcard" parameterType="BizcardDTO" resultType="Boolean">
+		SELECT
+			EXISTS (
+				SELECT 1
+				FROM KT.GV_BIZ_CARD
+				WHERE 1 = 1
+				AND (receiver_id = #{receiverId}
+					AND sender_id = #{senderId}
+					)
+				OR (receiver_id = #{senderId}
+					AND sender_id = #{receiverId}
+					)
+			)
+	</select>
+
+	<select id="getReadNBizcardList" parameterType="String" resultType="BizcardDTO">
+		SELECT
+			biz.seq
+			,biz.sender_id
+			,CAST(AES_DECRYPT(UNHEX(usr.nm),SHA2('a1s2d3f4g5h6j7k8l9!',512)) AS CHAR) AS nm
+			,com.com_id
+			,com.com_nm
+			,team.team
+			,jt.job_tit
+			,usr.phone_num
+			,CAST(AES_DECRYPT(UNHEX(usr.mail),SHA2('a1s2d3f4g5h6j7k8l9!',512)) AS CHAR) AS mail
+			,biz.req_date
+			,biz.req_space
+			,biz.accept_flag
+		FROM KT.GV_BIZ_CARD biz
+		LEFT JOIN KT.GV_USER usr ON biz.sender_id = usr.user_id
+		LEFT JOIN KT.GV_EMPLOYEE emp ON biz.sender_id = emp.user_id
+		LEFT JOIN KT.GV_COMPANY com ON emp.com_id = com.com_id
+		LEFT JOIN KT.GV_COMPANY_JOB_TIT jt ON emp.job_tit = jt.job_tit_id
+		LEFT JOIN KT.GV_COMPANY_TEAM team ON emp.team_id = team.team_id
+		WHERE 1 = 1
+		AND biz.receiver_id = #{receiverId}
+		AND biz.read_flag = false
+	</select>
+	
+	<select id="getReadYBizcardList" parameterType="String" resultType="BizcardDTO">
+		SELECT
+			biz.seq
+			,biz.sender_id
+			,CAST(AES_DECRYPT(UNHEX(usr.nm),SHA2('a1s2d3f4g5h6j7k8l9!',512)) AS CHAR) AS nm
+			,com.com_id
+			,com.com_nm
+			,team.team
+			,jt.job_tit
+			,usr.phone_num
+			,CAST(AES_DECRYPT(UNHEX(usr.mail),SHA2('a1s2d3f4g5h6j7k8l9!',512)) AS CHAR) AS mail
+			,biz.req_date
+			,biz.req_space
+			,biz.accept_flag
+		FROM KT.GV_BIZ_CARD biz
+		LEFT JOIN KT.GV_USER usr ON biz.sender_id = usr.user_id
+		LEFT JOIN KT.GV_EMPLOYEE emp ON biz.sender_id = emp.user_id
+		LEFT JOIN KT.GV_COMPANY com ON emp.com_id = com.com_id
+		LEFT JOIN KT.GV_COMPANY_JOB_TIT jt ON emp.job_tit = jt.job_tit_id
+		LEFT JOIN KT.GV_COMPANY_TEAM team ON emp.team_id = team.team_id
+		WHERE 1 = 1
+		AND biz.receiver_id = #{receiverId}
+		AND biz.read_flag = true
+	</select>
+	
+	<select id="getBizcardsByName" parameterType="Map" resultType="BizcardDTO">
+		SELECT
+			biz.seq
+			,biz.sender_id
+			,CAST(AES_DECRYPT(UNHEX(usr.nm),SHA2('a1s2d3f4g5h6j7k8l9!',512)) AS CHAR) AS nm
+			,com.com_id
+			,com.com_nm
+			,team.team
+			,jt.job_tit
+			,usr.phone_num
+			,CAST(AES_DECRYPT(UNHEX(usr.mail),SHA2('a1s2d3f4g5h6j7k8l9!',512)) AS CHAR) AS mail
+			,biz.req_date
+			,biz.req_space
+			,biz.accept_flag
+			,biz.read_flag
+		FROM KT.GV_BIZ_CARD biz
+		LEFT JOIN KT.GV_USER usr ON biz.sender_id = usr.user_id
+		LEFT JOIN KT.GV_EMPLOYEE emp ON biz.sender_id = emp.user_id
+		LEFT JOIN KT.GV_COMPANY com ON emp.com_id = com.com_id
+		LEFT JOIN KT.GV_COMPANY_JOB_TIT jt ON emp.job_tit = jt.job_tit_id
+		LEFT JOIN KT.GV_COMPANY_TEAM team ON emp.team_id = team.team_id
+		WHERE 1 = 1
+		AND biz.receiver_id = #{receiverId}
+		AND (
+			AES_DECRYPT(UNHEX(usr.nm),SHA2('a1s2d3f4g5h6j7k8l9!',512)) LIKE CONCAT('%',#{keyword},'%')
+			OR com.com_nm LIKE CONCAT('%',#{keyword},'%')
+		)
+	</select>
+	
+	<select id="getUserByBizcard" parameterType="Long" resultType = "BizcardDTO">
+		SELECT
+			receiver_id
+			,sender_id
+			,grp_id
+		FROM KT.GV_BIZ_CARD
+		WHERE 1 = 1
+		AND seq = #{seq}
+	</select>
+	
+	<insert id="insertBizcard" useGeneratedKeys="true" keyProperty="seq" parameterType="BizcardDTO">
+		INSERT INTO KT.GV_BIZ_CARD
+		(
+			receiver_id
+			,sender_id
+			,req_date
+			,req_space
+			,accept_flag
+			,read_flag
+			,grp_id
+		)
+		VALUES
+		(
+			#{receiverId}
+			,#{senderId}
+			,now()
+			,#{reqSpace}
+			,false
+			,false
+			,#{grpId}
+		)
+	</insert>
+	
+	<update id="updateReadFlag" parameterType="String">
+		UPDATE KT.GV_BIZ_CARD
+		SET read_flag = true
+		WHERE 1 = 1
+		AND receiver_id = #{receiverId}
+	</update>
+	
+	<update id="updateAcceptFlag" parameterType="Long">
+		UPDATE KT.GV_BIZ_CARD
+		SET accept_flag = true
+		WHERE 1 = 1
+		AND seq = #{seq}
+	</update>
+	
+	<delete id="deleteBizcardBySeq" parameterType="Long">
+		DELETE FROM KT.GV_BIZ_CARD
+		WHERE 1 = 1
+		AND seq = #{seq}
+	</delete>
+	
+	<delete id="deleteBizcardByUserId" parameterType="BizcardDTO">
+		DELETE FROM KT.GV_BIZ_CARD
+		WHERE 1 = 1
+		AND receiver_id = #{receiverId}
+		AND sender_id = #{senderId}
+	</delete>
+	
+</mapper>

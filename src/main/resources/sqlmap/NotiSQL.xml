@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kt.corp.noti.mapper.NotiMapper">
+
+	<select id="getNotiList" parameterType="String" resultType="NotiDTO">
+		SELECT
+			seq
+			,fl
+			,noti_sender
+			,mtg_date
+			,mtg_tit
+			,mtg_role
+			,noti_dtl
+			,noti_date
+			,noti_read
+		FROM KT.GV_NOTI
+		WHERE 1 = 1
+		AND user_id = #{userId}
+		ORDER BY noti_date DESC
+	</select>
+
+	<select id="getNotiBySeq" parameterType="Long" resultType="NotiDTO">
+		SELECT
+			seq
+			 ,fl
+			 ,noti_sender
+			 ,mtg_date
+			 ,mtg_tit
+			 ,mtg_role
+			 ,noti_dtl
+			 ,noti_date
+			 ,noti_read
+		FROM KT.GV_NOTI
+		WHERE 1 = 1
+		  AND seq = #{seq}
+
+	</select>
+	
+	<insert id="insertNotiToUser" parameterType="NotiDTO">
+		INSERT INTO KT.GV_NOTI
+		(
+			user_id
+			,fl
+			,noti_sender
+			,mtg_date
+			,mtg_tit
+		<if test="mtgRole != null">
+			,mtg_role
+		</if>
+			,noti_dtl
+			,noti_date
+			,noti_read
+		)
+		VALUES
+		(
+			#{userId}
+			,#{fl}
+			,#{notiSender}
+			,#{mtgDate}
+			,#{mtgTit}
+		<if test="mtgRole != null">
+			,#{mtgRole}
+		</if>
+			,#{notiDtl}
+			,now()
+			,false
+		)
+	</insert>
+	
+	<insert id="insertNotiToCompany" parameterType="NotiDTO">
+		INSERT INTO KT.GV_NOTI
+		(
+			user_id
+			,fl
+			,noti_sender
+			,noti_dtl
+			,noti_date
+			,noti_read
+		)
+		SELECT
+			user_id
+			,#{fl}
+			,#{notiSender}
+			,#{notiDtl}
+			,now()
+			,false
+		FROM KT.GV_MY_PF
+		WHERE 1 = 1
+		AND com_seq = #{comSeq}
+	</insert>
+	
+	<insert id="insertNotiToAllUsers" parameterType="NotiDTO">
+		INSERT INTO KT.GV_NOTI
+		(
+			user_id
+			,fl
+			,noti_sender
+			,mtg_tit
+			,noti_dtl
+			,noti_date
+			,noti_read
+		)
+		SELECT
+			user_id
+			,#{fl}
+			,#{notiSender}
+			,#{mtgTit}
+			,#{notiDtl}
+			,now()
+			,false
+		FROM KT.GV_USER
+	</insert>
+	
+	<update id="updateNotiRead" parameterType="Long">
+		UPDATE KT.GV_NOTI
+		SET noti_read = true
+		WHERE 1 = 1
+		AND seq = #{seq}
+	</update>
+	
+	<delete id="deleteNoti" parameterType="Long">
+		DELETE FROM KT.GV_NOTI
+		WHERE 1 = 1
+		AND seq = #{seq}
+	</delete>
+	
+	<select id="existNoti" parameterType="Long" resultType = "boolean">
+		SELECT
+			EXISTS (
+				SELECT 1
+				FROM KT.GV_NOTI
+				WHERE 1 = 1
+				AND seq = #{seq}
+			)
+	</select>
+	
+</mapper>

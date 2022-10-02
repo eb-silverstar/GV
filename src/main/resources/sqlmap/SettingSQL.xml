@@ -1,0 +1,722 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kt.corp.setting.mapper.SettingMapper">
+    <insert id="addNtcnSetup" parameterType="String">
+        INSERT INTO KT.GV_NTCN_SETUP
+        (
+            USER_ID
+        )
+        VALUES
+        (
+            #{userId}
+        )
+
+    </insert>
+    <insert id="addTeam" parameterType="ReqAddTeamDTO">
+        INSERT INTO KT.GV_COMPANY_TEAM
+        (
+            TEAM
+            , COM_ID
+        )
+        VALUES
+        (
+            #{team}
+            , (SELECT COM_ID FROM KT.GV_EMPLOYEE WHERE USER_ID = #{userId})
+        )
+    </insert>
+
+    <insert id="addJob" parameterType="ReqAddJobDTO">
+            INSERT INTO KT.GV_COMPANY_JOB_TIT
+            (
+            JOB_TIT
+            , COM_ID
+            )
+            VALUES
+            (
+            #{jobTit}
+            , (SELECT COM_ID FROM KT.GV_EMPLOYEE WHERE USER_ID = #{userId})
+            )
+    </insert>
+
+    <insert id="addSepcialty" parameterType="ReqSepcialtyDTO">
+        INSERT INTO KT.GV_SPECIALTY
+        (
+            USER_ID
+            , SPECIALTY
+        )VALUES(
+            #{userId}
+            , #{specialty}
+        )
+    </insert>
+
+    <insert id="addHashtag" parameterType="HashTagDTO">
+        INSERT INTO KT.GV_COM_HASHTAG
+        (
+            COM_ID
+            , COM_HASHTAG
+        )VALUES(
+            #{comId}
+            , #{comHashtag}
+        )
+    </insert>
+
+    <insert id="insertBsnsField" parameterType="BsnsFieldDTO">
+        INSERT INTO KT.GV_COMPANY_BSNS_FIELD
+        (
+            COM_ID
+        , BSNS_FIELD
+        , BSNS_FIELD_ID
+        )VALUES(
+           #{comId}
+          , (SELECT BSNS_FIELD FROM KT.GV_COMPANY_BSNS_FIELD_FORM WHERE BSNS_FIELD_ID = #{bsnsFieldId})
+          , #{bsnsFieldId}
+       )
+    </insert>
+
+    <insert id="insertUtztnTech" parameterType="UtztnTechDTO">
+        INSERT INTO KT.GV_COMPANY_UTZTN_TECH
+        (
+            COM_ID
+        , UTZTN_TECH
+        , UTZTN_TECH_ID
+        )VALUES(
+           #{comId}
+       , (SELECT UTZTN_TECH FROM KT.GV_COMPANY_UTZTN_TECH_FORM WHERE UTZTN_TECH_ID = #{utztnTechId})
+       , #{utztnTechId}
+       )
+    </insert>
+
+    <insert id="insertInvestStage" parameterType="InvestStageDTO">
+        INSERT INTO KT.GV_COMPANY_INVEST_STAGE
+        (
+            COM_ID
+        , INVEST_STAGE
+        , INVEST_STAGE_ID
+        )VALUES(
+           #{comId}
+       , (SELECT INVEST_STAGE FROM KT.GV_COMPANY_INVEST_STAGE_FORM WHERE INVEST_STAGE_ID = #{investStageId})
+       , #{investStageId}
+       )
+    </insert>
+
+    <select id="countEmployee" parameterType="String" resultType="Integer">
+        SELECT
+            COUNT(*)
+        FROM KT.GV_EMPLOYEE
+        WHERE USER_ID = #{userId}
+    </select>
+
+    <insert id="insertMgtSup" parameterType="MgtSupDTO">
+        INSERT INTO KT.GV_COM_MGT_SUP
+        (
+            COM_ID
+            , MGT_SUP
+        )VALUES(
+            #{comId}
+            , #{mgtSup}
+        )
+
+    </insert>
+
+    <insert id="addEmployee" parameterType="InviteEmployeeDTO">
+        INSERT INTO KT.GV_EMPLOYEE
+        (
+            USER_ID
+            , COM_ID
+            ,STTUS
+            , AUTH_TYPE
+        )VALUES(
+            #{userId}
+            , #{comId}
+            , #{sttus}
+            , ''
+        )
+    </insert>
+
+    <select id="getAuth" parameterType="String" resultType="Integer">
+        SELECT
+            AUTH
+        FROM KT.GV_EMPLOYEE
+        WHERE USER_ID = #{userId}
+    </select>
+
+    <select id="getComIdByJobTitId" parameterType="Long" resultType="String">
+        SELECT
+            COM_ID
+        FROM KT.GV_COMPANY_JOB_TIT
+        WHERE JOB_TIT_ID = #{jobTitId}
+    </select>
+
+    <select id="getComIdByTeamId" parameterType="Long" resultType="String">
+        SELECT
+            COM_ID
+        FROM KT.GV_COMPANY_TEAM
+        WHERE TEAM_ID = #{team_id}
+    </select>
+
+    <select id="countUser" parameterType="String" resultType="Integer">
+        SELECT
+            COUnT(*)
+        FROM KT.GV_USER
+        WHERE USER_ID = #{userId}
+    </select>
+
+    <select id="countNtcnSetup" parameterType="String" resultType="Integer">
+        SELECT
+            COUNT(*)
+        FROM KT.GV_NTCN_SETUP
+        WHERE USER_ID = #{userId}
+    </select>
+
+    <select id="countSepcialty" parameterType="String" resultType="Integer">
+        SELECT
+            COUNT(*)
+        FROM KT.GV_SPECIALTY
+        WHERE USER_ID = #{userId}
+    </select>
+
+    <select id="countHashtag" parameterType="String" resultType="Integer">
+        SELECT
+            COUNT(*)
+        FROM KT.GV_COM_HASHTAG
+        WHERE COM_ID = #{comId}
+    </select>
+
+    <select id="countExistHashtag" parameterType="HashTagDTO" resultType="Integer">
+        SELECT
+            COUNT(*)
+        FROM KT.GV_COM_HASHTAG
+        WHERE COM_ID = #{comId}
+            AND COM_HASHTAG = #{comHashtag}
+    </select>
+
+    <select id="countTeam" parameterType="TeamDTO" resultType="Integer">
+        SELECT COUNT(*) FROM KT.GV_COMPANY_TEAM WHERE TEAM = #{team} AND COM_ID = #{comId}
+    </select>
+
+    <select id="countJob" parameterType="JobDTO" resultType="Integer">
+        SELECT COUNT(*) FROM KT.GV_COMPANY_JOB_TIT WHERE JOB_TIT = #{jobTit} AND COM_ID = #{comId}
+    </select>
+
+    <select id="getComIdByJob" parameterType="JobDTO" resultType="String">
+        SELECT JOB_TIT_ID FROM KT.GV_COMPANY_JOB_TIT WHERE JOB_TIT = #{jobTit} AND COM_ID = #{comId}
+    </select>
+
+    <select id="getSetting" parameterType="String" resultType="ResGetSetting">
+        SELECT
+            GU.PF_ON_OFF
+             , CAST(AES_DECRYPT(UNHEX(GU.NM),SHA2('a1s2d3f4g5h6j7k8l9!',512)) AS CHAR) AS NM
+             , GC.COM_NM
+             , GCT.TEAM
+             , GCJT.JOB_TIT
+             , IFNULL(GU.INTRO,'') AS INTRO
+             , IFNULL(GU.PHONE_NUM, '') AS PHONE_NUM
+             , CAST(AES_DECRYPT(UNHEX(GU.MAIL),SHA2('a1s2d3f4g5h6j7k8l9!',512)) AS CHAR) AS MAIL
+             , GE.AUTH
+        FROM GV_EMPLOYEE GE
+                 LEFT JOIN GV_USER GU on GE.USER_ID = GU.USER_ID
+                 LEFT JOIN GV_COMPANY GC on GE.COM_ID = GC.COM_ID
+                 LEFT JOIN GV_COMPANY_TEAM GCT on GE.TEAM_ID = GCT.TEAM_ID
+                 LEFT JOIN GV_COMPANY_JOB_TIT GCJT on GE.JOB_TIT = GCJT.JOB_TIT_ID
+        WHERE GE.USER_ID = #{userId}
+    </select>
+
+    <select id="getUserSalt" parameterType="String">
+        SELECT
+            SALT
+        FROM KT.GV_USER
+        WHERE 1 = 1
+            AND USER_ID = #{userId}
+    </select>
+
+    <select id="chkUserPw" parameterType="ReqChkUserPwDTO" resultType="Integer">
+        SELECT
+            COUNT(*)
+        FROM KT.GV_USER
+        WHERE 1 = 1
+            AND USER_ID = #{userId}
+            AND PW = #{pw}
+    </select>
+
+    <select id="getNtcn" parameterType="String" resultType="ResNtcnDTO">
+        SELECT
+            NTCN_PREVIEW_YN
+             , NTCN_SOUND_YN
+             , FAV_COM_NTCN_YN
+             , CALL_POPUP_YN
+             , SCHDL_NTCN_YN
+             , MTG_POPUP_NTCN_YN
+             , EVENT_NTCN_YN
+        FROM KT.GV_NTCN_SETUP
+        WHERE 1 = 1
+          AND USER_ID = #{userId}
+    </select>
+
+    <select id="getTheme" parameterType="String" resultType="Integer">
+        SELECT
+            THEME
+        FROM KT.GV_NTCN_SETUP
+        WHERE 1 = 1
+          AND USER_ID = #{userId}
+    </select>
+
+    <select id="getFavList" parameterType="String" resultType="FavDTO">
+        SELECT
+            USER_ID
+            , SEQ
+            , COM_NM
+            , COM_ID
+            , FAV_COM_ON_OFF
+            , FAV_COM_EVEN_ON_OFF
+        FROM KT.GV_FAV
+        WHERE 1 = 1
+            AND USER_ID = #{userId}
+    </select>
+
+    <select id="getTeamList" parameterType="String" resultType="TeamDTO">
+        SELECT
+            TEAM
+             , TEAM_ID
+             , COM_ID
+        FROM KT.GV_COMPANY_TEAM
+        WHERE 1 = 1
+          AND COM_ID = (SELECT COM_ID FROM KT.GV_EMPLOYEE WHERE USER_ID = #{userId})
+    </select>
+
+    <select id="getJobList" parameterType="String" resultType="JobDTO">
+        SELECT
+            JOB_TIT
+             , JOB_TIT_ID
+             , COM_ID
+        FROM KT.GV_COMPANY_JOB_TIT
+        WHERE 1 = 1
+          AND COM_ID = (SELECT COM_ID FROM KT.GV_EMPLOYEE WHERE USER_ID = #{userId})
+    </select>
+
+    <select id="getBizcard" parameterType="String" resultType="ResBizcardDTO">
+        SELECT
+            CAST(AES_DECRYPT(UNHEX(GU.nm),SHA2('a1s2d3f4g5h6j7k8l9!',512)) AS CHAR) AS NM
+             ,CAST(AES_DECRYPT(UNHEX(GU.mail),SHA2('a1s2d3f4g5h6j7k8l9!',512)) AS CHAR) AS MAIL
+             , GC.COM_NM
+             , GCT.TEAM
+             , GCJT.JOB_TIT
+             , GU.INTRO
+             , GU.PHONE_NUM
+             , GNS.NTCN_PREVIEW_YN
+        FROM KT.GV_EMPLOYEE GE
+                 LEFT JOIN GV_USER GU on GE.USER_ID = GU.USER_ID
+                 LEFT JOIN GV_COMPANY GC on GE.COM_ID = GC.COM_ID
+                 LEFT JOIN GV_COMPANY_TEAM GCT on GE.TEAM_ID = GCT.TEAM_ID
+                 LEFT JOIN GV_COMPANY_JOB_TIT GCJT on GE.JOB_TIT = GCJT.JOB_TIT
+                 LEFT JOIN GV_NTCN_SETUP GNS on GE.USER_ID = GNS.USER_ID
+        WHERE GE.USER_ID = #{userId}
+    </select>
+
+    <select id="getSpecialty" parameterType="String" resultType="String">
+        SELECT
+            SPECIALTY
+        FROM KT.GV_SPECIALTY
+        WHERE SPECIALTY LIKE CONCAT(#{word},'%')
+        GROUP BY SPECIALTY
+    </select>
+
+    <select id="getHashtagList" parameterType="String" resultType="String">
+        SELECT
+            COM_HASHTAG
+        FROM KT.GV_COM_HASHTAG
+        WHERE COM_HASHTAG LIKE CONCAT(#{word},'%')
+        GROUP BY COM_HASHTAG
+    </select>
+
+    <select id="getCom" parameterType="String" resultType="ResComDTO">
+        SELECT
+            COM_NM
+             , META_WEB_URL
+             , COM_TYPE
+             , COM_UK
+             , BULD_TEMP
+             ,BULD_COL_TEMP
+             , OFFICE_TEMP
+        FROM KT.GV_COMPANY
+        WHERE COM_ID = (
+            SELECT COM_ID FROM KT.GV_EMPLOYEE WHERE USER_ID = #{userId}
+        )
+    </select>
+
+    <select id="getComDetail" parameterType="String" resultType="ComDetailDTO">
+        SELECT
+            COM_INTRO
+            , COM_ADD
+            , COM_NUM1
+            , COM_NUM2
+        FROM GV_COMPANY
+        WHERE COM_ID = (
+            SELECT COM_ID FROM KT.GV_EMPLOYEE WHERE USER_ID = #{userId}
+        )
+    </select>
+
+    <select id="getBsnsFieldList" parameterType="String" resultType="BsnsFieldDTO">
+        SELECT
+            COM_ID
+            , BSNS_FIELD_ID
+            , BSNS_FIELD
+        FROM KT.GV_COMPANY_BSNS_FIELD
+        WHERE COM_ID = (
+            SELECT COM_ID FROM KT.GV_EMPLOYEE WHERE USER_ID = #{userId}
+        )
+    </select>
+
+    <select id="getBsnsFieldFormList" resultType="BsnsFieldFormDTO">
+        SELECT
+            BSNS_FIELD_ID
+             , BSNS_FIELD
+        FROM KT.GV_COMPANY_BSNS_FIELD_FORM
+    </select>
+
+    <select id="getUtztnTechList" parameterType="String" resultType="UtztnTechDTO">
+        SELECT
+            UTZTN_TECH_ID
+             , UTZTN_TECH
+            , COM_ID
+        FROM KT.GV_COMPANY_UTZTN_TECH
+        WHERE COM_ID = (
+            SELECT COM_ID FROM KT.GV_EMPLOYEE WHERE USER_ID = #{userId}
+        )
+    </select>
+
+    <select id="getUtztnTechFormList" resultType="UtztnTechFormDTO">
+        SELECT
+            UTZTN_TECH_ID
+             , UTZTN_TECH
+        FROM KT.GV_COMPANY_UTZTN_TECH_FORM
+    </select>
+
+    <select id="getInvestStageList" parameterType="String" resultType="InvestStageDTO">
+        SELECT
+            INVEST_STAGE
+             ,INVEST_STAGE_ID
+            , COM_ID
+        FROM KT.GV_COMPANY_INVEST_STAGE
+        WHERE COM_ID = (
+            SELECT COM_ID FROM KT.GV_EMPLOYEE WHERE USER_ID = #{userId}
+        )
+    </select>
+
+    <select id="getInvestStageForm" resultType="InvestStageFormDTO">
+        SELECT
+            INVEST_STAGE
+             ,INVEST_STAGE_ID
+        FROM KT.GV_COMPANY_INVEST_STAGE_FORM;
+    </select>
+
+    <select id="hashTagList" parameterType="String" resultType="HashTagDTO">
+        SELECT
+            COM_ID
+            , COM_HASHTAG
+        FROM KT.GV_COM_HASHTAG
+        WHERE COM_ID = (
+            SELECT COM_ID FROM KT.GV_EMPLOYEE WHERE USER_ID = #{userId}
+        )
+    </select>
+
+    <select id="getComType" parameterType="String" resultType="String">
+        SELECT
+            COM_TYPE
+        FROM KT.GV_COMPANY
+        WHERE COM_ID = (
+            SELECT COM_ID FROM KT.GV_EMPLOYEE WHERE USER_ID = #{userId}
+        )
+    </select>
+
+    <select id="getMgtSupList" parameterType="String" resultType="MgtSupDTO">
+        SELECT
+            COM_ID
+            , MGT_SUP
+        FROM KT.GV_COM_MGT_SUP
+        WHERE
+            COM_ID = ( SELECT COM_ID FROM KT.GV_EMPLOYEE WHERE USER_ID = #{userId} )
+    </select>
+
+    <select id="getComId" parameterType="String" resultType="String">
+        SELECT COM_ID
+        FROM KT.GV_EMPLOYEE
+        WHERE USER_ID = #{userId}
+    </select>
+
+    <select id="getFavUserId" parameterType="Long" resultType="String">
+        SELECT
+            USER_ID
+        FROM KT.GV_FAV
+        WHERE SEQ = #{seq}
+    </select>
+
+    <select id="getEmployeeList" parameterType="String" resultType="EmployeeDTO">
+        SELECT
+            CAST(AES_DECRYPT(UNHEX(GU.nm),SHA2('a1s2d3f4g5h6j7k8l9!',512)) AS CHAR) AS NM
+             ,CAST(AES_DECRYPT(UNHEX(GU.mail),SHA2('a1s2d3f4g5h6j7k8l9!',512)) AS CHAR) AS MAIL
+             , GCT.TEAM
+             , GCJT.JOB_TIT
+             , GE.AUTH
+             , GE.AUTH_TYPE
+             , GE.STTUS
+        FROM KT.GV_EMPLOYEE GE
+                 LEFT JOIN GV_USER GU on GE.USER_ID = GU.USER_ID
+                 LEFT JOIN GV_COMPANY_TEAM GCT on GE.TEAM_ID = GCT.TEAM_ID
+                 LEFT JOIN GV_COMPANY_JOB_TIT GCJT on GE.JOB_TIT = GCJT.JOB_TIT_ID
+        WHERE GE.COM_ID = (
+            SELECT GE2.COM_ID FROM KT.GV_EMPLOYEE GE2 WHERE GE2.USER_ID = #{userId}
+        )
+    </select>
+
+    <select id="getUserId" parameterType="String" resultType="String">
+        SELECT
+            USER_ID
+        FROM KT.GV_USER
+        WHERE MAIL = #{encMail}
+    </select>
+
+    <select id="getInviteUser" parameterType="String" resultType="ResInviteUserDTO">
+        SELECT
+            CAST(AES_DECRYPT(UNHEX(GU.nm),SHA2('a1s2d3f4g5h6j7k8l9!',512)) AS CHAR) AS NM
+            ,CAST(AES_DECRYPT(UNHEX(GU.mail),SHA2('a1s2d3f4g5h6j7k8l9!',512)) AS CHAR) AS MAIL
+        FROM KT.GV_USER GU
+        WHERE USER_ID = #{userId}
+    </select>
+
+    <update id="updateUnAuth" parameterType="String">
+        UPDATE KT.GV_EMPLOYEE
+        SET auth = 0
+        WHERE USER_ID = #{userId}
+    </update>
+
+    <update id="updateAuth" parameterType="String">
+        UPDATE KT.GV_EMPLOYEE
+        SET auth = 1
+        WHERE USER_ID = #{userId}
+    </update>
+
+    <update id="updateAuthType" parameterType="ReqEmployeeAuthTypeDTO">
+        UPDATE KT.GV_EMPLOYEE
+        SET AUTH_TYPE = #{authType}
+        WHERE USER_ID = #{userId}
+    </update>
+
+    <update id="updateComDetail" parameterType="ReqUpdateComDetailDTO">
+        UPDATE KT.GV_COMPANY
+        SET COM_INTRO = #{comIntro}
+          , COM_ADD = #{comAdd}
+          , COM_NUM1 = #{comNum1}
+          , COM_NUM2 = #{comNum2}
+        WHERE COM_ID = (
+            SELECT COM_ID FROM KT.GV_EMPLOYEE WHERE USER_ID = #{userId}
+        )
+    </update>
+
+    <update id="updateLogo" parameterType="ReqUpdateLogoDTO">
+        UPDATE KT.GV_COMPANY
+        SET IMG_LOG = #{imgLog}
+        WHERE COM_ID = (
+            SELECT COM_ID FROM KT.GV_EMPLOYEE WHERE USER_ID = #{userId}
+        )
+    </update>
+
+    <update id="updateCom" parameterType="ReqUpdateComDTO">
+        UPDATE KT.GV_COMPANY
+        SET COM_TYPE = #{comType}
+            , BULD_TEMP = #{buldTemp}
+            , BULD_COL_TEMP = #{buldColTemp}
+            , OFFICE_TEMP = #{officeTemp}
+        WHERE 1 = 1
+            AND COM_ID = (
+            SELECT COM_ID FROM KT.GV_EMPLOYEE WHERE USER_ID = #{userId}
+        )
+    </update>
+
+    <update id="updateFavFeed" parameterType="ReqFavDTO">
+        UPDATE KT.GV_FAV
+        SET FAV_COM_ON_OFF = #{onOff}
+        WHERE 1 = 1
+            AND SEQ = #{seq}
+    </update>
+
+    <update id="updateFavEven" parameterType="ReqFavDTO">
+        UPDATE KT.GV_FAV
+        SET FAV_COM_EVEN_ON_OFF = #{onOff}
+        WHERE 1 = 1
+          AND SEQ = #{seq}
+    </update>
+
+    <update id="updatePfOnOff" parameterType="ReqUpdatePfOnOff">
+        UPDATE KT.GV_USER
+        SET PF_ON_OFF = #{pfOnOff}
+        WHERE USER_ID = #{userId}
+    </update>
+
+    <update id="updateUser" parameterType="ReqUpdateUserDTO">
+        UPDATE KT.GV_USER
+        SET NM = HEX(AES_ENCRYPT(#{nm},SHA2('a1s2d3f4g5h6j7k8l9!',512)))
+            ,INTRO = #{intro}
+            ,PHONE_NUM = #{phoneNum}
+        WHERE 1 = 1
+            AND USER_ID = #{userId}
+    </update>
+
+    <update id="updateUserPhoneNum" parameterType="ReqUpdateUserPhoneNumDTO">
+        UPDATE KT.GV_USER
+        SET
+            PHONE_NUM = #{phoneNum}
+        WHERE 1 = 1
+          AND USER_ID = #{userId}
+    </update>
+
+    <update id="updateNtcnPreview" parameterType="ReqNtcnDTO">
+        UPDATE KT.GV_NTCN_SETUP
+        SET NTCN_PREVIEW_YN = #{value}
+        WHERE 1 = 1
+          AND USER_ID = #{userId}
+    </update>
+
+    <update id="updateNtcnSound" parameterType="ReqNtcnDTO">
+        UPDATE KT.GV_NTCN_SETUP
+        SET NTCN_SOUND_YN = #{value}
+        WHERE 1 = 1
+          AND USER_ID = #{userId}
+    </update>
+
+    <update id="updateNtcnFavCom" parameterType="ReqNtcnDTO">
+        UPDATE KT.GV_NTCN_SETUP
+        SET FAV_COM_NTCN_YN = #{value}
+        WHERE 1 = 1
+          AND USER_ID = #{userId}
+    </update>
+
+    <update id="updateNtcnCallPopup" parameterType="ReqNtcnDTO">
+        UPDATE KT.GV_NTCN_SETUP
+        SET CALL_POPUP_YN = #{value}
+        WHERE 1 = 1
+          AND USER_ID = #{userId}
+    </update>
+
+    <update id="updateNtcnSchdl" parameterType="ReqNtcnDTO">
+        UPDATE KT.GV_NTCN_SETUP
+        SET SCHDL_NTCN_YN = #{value}
+        WHERE 1 = 1
+          AND USER_ID = #{userId}
+    </update>
+
+    <update id="updateMtgPopup" parameterType="ReqNtcnDTO">
+        UPDATE KT.GV_NTCN_SETUP
+        SET MTG_POPUP_NTCN_YN = #{value}
+        WHERE 1 = 1
+          AND USER_ID = #{userId}
+    </update>
+
+
+    <update id="updateEvent" parameterType="ReqNtcnDTO">
+        UPDATE KT.GV_NTCN_SETUP
+        SET EVENT_NTCN_YN = #{value}
+        WHERE 1 = 1
+          AND USER_ID = #{userId}
+    </update>
+
+    <update id="updateTheme" parameterType="ReqNtcnDTO">
+        UPDATE KT.GV_NTCN_SETUP
+        SET THEME = #{value}
+        WHERE 1 = 1
+          AND USER_ID = #{userId}
+    </update>
+
+    <update id="updateFavComOnOff" parameterType="ReqUpdateFavComOnOffDTO">
+
+    UPDATE KT.GV_FAV
+    SET FAV_COM_ON_OFF = #{favComOnOff}
+    WHERE 1 = 1
+    AND SEQ = #{seq}
+    </update>
+
+    <update id="updateTeam" parameterType="ReqUpdateTeamDTO">
+        UPDATE KT.GV_COMPANY_TEAM
+        SET TEAM = #{team}
+        WHERE 1 = 1
+          AND TEAM_ID = #{teamId}
+    </update>
+
+    <update id="updateJob" parameterType="ReqUpdateJobDTO">
+        UPDATE KT.GV_COMPANY_JOB_TIT
+        SET JOB_TIT = #{jobTit}
+        WHERE 1 = 1
+          AND JOB_TIT_ID = #{jobTitId}
+    </update>
+
+    <update id="agreeInvite" parameterType="String">
+        UPDATE KT.GV_EMPLOYEE
+        SET STTUS = '초대요청'
+        WHERE 1 = 1
+            AND USER_ID = #{userId}
+    </update>
+
+    <update id="confirmInvite" parameterType="STring">
+        UPDATE KT.GV_EMPLOYEE
+        SET STTUS = '초대완료'
+        WHERE 1 = 1
+            AND USER_ID = #{userId}
+    </update>
+
+    <delete id="deleteTeam" parameterType="Long">
+        DELETE FROM KT.GV_COMPANY_TEAM
+        WHERE 1 = 1
+          AND TEAM_ID = #{teamId}
+    </delete>
+
+    <delete id="deleteJob" parameterType="Long">
+        DELETE FROM KT.GV_COMPANY_JOB_TIT
+        WHERE 1 = 1
+          AND JOB_TIT_ID = #{jobTitId}
+    </delete>
+
+    <delete id="deleteSepcialty" parameterType="ReqSepcialtyDTO">
+        DELETE FROM KT.GV_SPECIALTY
+        WHERE 1 = 1
+            AND USER_ID = #{userId}
+            AND SPECIALTY = #{specialty}
+    </delete>
+
+    <delete id="deleteHashtag" parameterType="HashTagDTO">
+        DELETE FROM KT.GV_COM_HASHTAG
+        WHERE 1 = 1
+            AND COM_ID = #{comId}
+            AND COM_HASHTAG = #{comHashtag}
+    </delete>
+
+    <delete id="deleteBsnsField" parameterType="String">
+        DELETE FROM KT.GV_COMPANY_BSNS_FIELD
+        WHERE 1 = 1
+            AND COM_ID = #{comId}
+    </delete>
+
+
+    <delete id="deleteUtztnTech" parameterType="String">
+        DELETE FROM KT.GV_COMPANY_UTZTN_TECH
+        WHERE 1 = 1
+          AND COM_ID = #{comId}
+    </delete>
+
+
+    <delete id="deleteInvestStage" parameterType="String">
+        DELETE FROM KT.GV_COMPANY_INVEST_STAGE
+        WHERE 1 = 1
+          AND COM_ID = #{comId}
+    </delete>
+
+    <delete id="deleteMgtSup" parameterType="String">
+        DELETE FROM KT.GV_COM_MGT_SUP
+        WHERE 1 = 1
+            AND COM_ID = #{comId}
+    </delete>
+
+    <delete id="deleteEmployee" parameterType="String">
+        DELETE FROM KT.GV_EMPLOYEE
+        WHERE 1 = 1
+            AND USER_ID = #{userId}
+    </delete>
+</mapper>

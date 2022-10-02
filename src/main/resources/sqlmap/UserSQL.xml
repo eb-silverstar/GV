@@ -1,0 +1,325 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kt.corp.user.mapper.UserMapper">
+
+	<select id="existUser" parameterType="String" resultType="boolean">
+		SELECT
+			EXISTS (
+				SELECT 1
+				FROM KT.GV_USER
+				WHERE 1 = 1
+				AND user_id = #{userId}
+			)
+	</select>
+	
+	<select id="existGuest" parameterType="String" resultType="boolean">
+		SELECT
+			EXISTS (
+				SELECT 1
+				FROM KT.GV_GUEST
+				WHERE 1 = 1
+				AND guest_id = #{guestId}
+			)
+	</select>
+
+	<select id="getRandomUserId" resultType="String">
+		SELECT USER_ID
+		FROM GV_USER
+		ORDER BY RAND()
+		LIMIT 1
+	</select>
+	
+	<select id="existUserMail" parameterType="String" resultType="boolean">
+		SELECT
+			EXISTS (
+				SELECT 1
+				FROM KT.GV_USER
+				WHERE 1 = 1
+				AND mail = #{mail}
+			)
+	</select>
+	
+	<select id="getUserByMail" parameterType="String" resultType="UserDTO">
+		SELECT
+			usr.user_id
+			,CAST(AES_DECRYPT(UNHEX(usr.nm),SHA2('a1s2d3f4g5h6j7k8l9!',512)) AS CHAR) AS nm
+			,CAST(AES_DECRYPT(UNHEX(usr.mail),SHA2('a1s2d3f4g5h6j7k8l9!',512)) AS CHAR) AS mail
+			,stat.user_state_code
+			,stat.user_state
+		FROM KT.GV_USER usr
+		LEFT JOIN KT.GV_USER_STATE stat ON usr.user_id = stat.user_id
+		WHERE 1 = 1
+		AND mail = #{mail}
+	</select>
+
+	<select id="getAuth" parameterType="String" resultType="Integer">
+		SELECT
+			AUTH
+		FROM KT.GV_EMPLOYEE
+		WHERE 1 = 1
+		AND USER_ID = #{userID}
+	</select>
+	
+	<insert id="insertUser" parameterType="UserDTO">
+ 		<selectKey keyProperty="userId" resultType="String" order="BEFORE">
+	    	SELECT CONCAT(UPPER(LEFT(MD5(UUID()), 5)),'-',UPPER(LEFT(MD5(UUID()), 5)))
+		</selectKey>
+		INSERT INTO KT.GV_USER
+		(
+			user_id
+			,mail
+			,pw
+			,nm
+			,salt
+		)
+		VALUES
+		(
+			#{userId}
+			,#{mail}
+			,#{pw}
+			,HEX(AES_ENCRYPT(#{nm},SHA2('a1s2d3f4g5h6j7k8l9!',512)))
+			,#{salt}
+		)
+	</insert>
+	
+	<select id="selectUser" parameterType="java.util.Map" resultType="UserDTO">
+		SELECT 
+				user_id	
+				, (CAST(AES_DECRYPT(UNHEX(nm),SHA2('a1s2d3f4g5h6j7k8l9!',512)) AS CHAR)) AS nm
+				, (CAST(AES_DECRYPT(UNHEX(mail),SHA2('a1s2d3f4g5h6j7k8l9!',512)) AS CHAR)) AS mail
+				, salt
+				, pw
+				, wrong_pw
+		FROM KT.GV_USER
+		WHERE 1=1
+		 <if test='active != null and active.equals("1")'>
+			AND active = 1
+		</if>
+		 <if test='userId != null and !userId.equals("")'>
+			AND user_id = #{userId}
+		</if>
+		 <if test='pw != null and !pw.equals("")'>
+			AND pw = #{pw}
+		</if>
+		 <if test='userMail != null and !userMail.equals("")'>
+			AND mail = #{userMail}
+		</if>
+		<if test='certification != null and certification.equals("h24")'>
+			AND last_repw_date > DATE_SUB(NOW(), INTERVAL 1 DAY)
+		</if>
+	</select>
+	
+	<update id="updateUserInfo" parameterType="java.util.Map">
+		UPDATE KT.GV_USER
+		SET
+			last_repw_date = now()
+		<if test='active != null and !active.equals("")'>
+			 , active			= #{active}
+		 </if>
+		<if test='intro != null and !intro.equals("")'>
+			 , intro	= #{intro}
+		 </if>
+		<if test='wrongPw != null and !wrongPw.equals("")'>
+			 , wrong_pw	= #{wrongPw}
+		 </if>
+		<if test='newPwd != null and !newPwd.equals("")'>
+			 , pw				= #{newPwd}
+			 , last_repw_date = current_timestamp()
+		 </if>
+		WHERE  1=1
+		<if test='userId != null and !userId.equals("")'>
+			AND user_id = #{userId}
+		</if>
+		<if test='userMail != null and !userMail.equals("")'>
+			AND mail = #{userMail}
+		</if>
+	</update>
+	
+	<insert id="insertMailLog" parameterType="java.util.Map">
+		INSERT INTO KT.GV_MAIL_LOG
+		(
+			user_id
+			,mail_type
+		)
+		VALUES
+		(
+			#{userId}
+			, #{mailType}
+		)
+	</insert>
+	
+	<insert id="insertUserToken" parameterType="java.util.Map">
+		INSERT INTO KT.GV_USER_TOKEN
+		(
+			user_id
+			, token
+			, refresh_token
+			, pub_date
+		)
+		VALUES
+		(
+			#{userId}
+			, #{token}
+			, #{refreshToken}
+			, NOW()
+		)
+		ON DUPLICATE KEY UPDATE 
+			token	=	#{token} 
+			, refresh_token	= #{refreshToken}
+			, pub_date = NOW()
+	</insert>
+	
+	<update id="updateUserToken" parameterType="java.util.Map">
+		UPDATE KT.GV_USER_TOKEN
+		SET
+			pub_date = now()
+		<if test='token != null and !token.equals("")'>
+			 , token			= #{token}
+		 </if>
+		<if test='refreshToken != null and !refreshToken.equals("")'>
+			 , refresh_token	= #{refreshToken}
+		 </if>
+		WHERE user_id = #{userId}
+	</update>
+	
+	<select id="selectUserToken" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT 
+			token
+			, refresh_token
+			, pub_date 
+		FROM KT.GV_USER_TOKEN
+		WHERE user_id = #{userId}
+		ORDER BY pub_date DESC
+		LIMIT 1
+	</select>
+	
+	<delete id="deleteUserToken" parameterType="String">
+		DELETE FROM KT.GV_USER_TOKEN
+		WHERE user_id = #{userId}
+	</delete>
+	
+	<insert id="insertUserLoginLog" parameterType="UserDTO">
+		INSERT INTO KT.GV_USER_LOGIN_LOG
+		(
+			user_id
+			, ip_add
+			, acc_time
+			, ennc
+			, entry_type
+		)
+		VALUES
+		(
+			#{userId}
+			, #{ip}
+			, NOW()
+			, 0
+			, #{entryType}
+		)
+	</insert>
+	
+	<insert id="insertGuest" parameterType="GuestDTO">
+		<selectKey keyProperty="guestId" resultType="String" order="BEFORE">
+	    	SELECT CONCAT(UPPER(LEFT(MD5(UUID()), 5)),'-',UPPER(LEFT(MD5(UUID()), 5)))
+		</selectKey>
+		INSERT INTO KT.GV_GUEST
+		(
+			guest_nick_nm
+			, ip_add
+			, state
+			, state_code
+			<if test='guestId != null and !guestId.equals("")'>
+			, guest_id
+			</if>
+			<if test='guestUrl != null and !guestUrl.equals("")'>
+			, guest_url
+			</if>
+		)
+		VALUES
+		(
+			#{guestNickNm}
+			, #{ipAdd}
+			, '온라인'
+			, 'CODE001'
+			<if test='guestId != null and !guestId.equals("")'>
+			, #{guestId}
+			</if>
+			<if test='guestUrl != null and !guestUrl.equals("")'>
+			, #{guestUrl}
+			</if>
+		)
+	</insert>
+	
+	<select id="selectGuest" parameterType="GuestDTO" resultType="GuestDTO">
+		SELECT  
+			guest_id
+			, guest_nick_nm
+			, ip_add
+			, IFNULL(guest_url, '') AS guest_url 
+			, IFNULL(img_log, '') AS img_log 
+			, state_code
+		FROM KT.GV_GUEST 
+		WHERE 1=1 
+		<if test='guestId != null and !guestId.equals("")'>
+			AND guest_id = #{guestId}
+		</if>
+		<if test='guestNickNm != null and !guestNickNm.equals("")'>
+			AND guest_nick_nm = #{guestNickNm}
+		</if>
+	</select>
+	
+	<update id="updateGuest" parameterType="GuestDTO">
+		UPDATE KT.GV_GUEST
+		SET
+			guest_id = #{guestId}
+			<if test='guestNickNm != null and !guestNickNm.equals("")'>
+			, guest_nick_nm = #{guestNickNm}
+			</if>
+			<if test='guestUrl != null and !guestUrl.equals("")'>
+			, guest_url = #{guestUrl}
+			</if>
+			<if test='imgLog != null and !imgLog.equals("")'>
+			, img_log = #{imgLog}
+			</if>
+			<if test='stateCode != null and !stateCode.equals("")'>
+			, state_code = #{stateCode}
+			</if>
+		WHERE guest_id = #{guestId}
+	</update>
+	
+	<delete id="deleteGuest" parameterType="String">
+		DELETE FROM KT.GV_GUEST
+		WHERE guest_id = #{guestId}
+	</delete>
+	
+	<insert id="insertUserStat" parameterType="UserDTO">
+		INSERT INTO KT.GV_USER_STATE(
+			USER_ID 
+			, UP_AUTO 
+			, USER_STATE_CODE 
+		)VALUE(
+			#{userId}
+			, 1
+			, #{userStateCode}
+		)
+	</insert>
+	
+	<select id="selectUserStat" parameterType="String" resultType="UserDTO">
+		SELECT 
+			user_id 
+			, user_state_code
+		FROM KT.GV_USER_STATE
+		WHERE user_id  = #{userId}
+	</select>
+	
+	<update id="updateUserStat" parameterType="UserDTO">
+		UPDATE KT.GV_USER_STATE
+		SET user_state_code = #{userStateCode}
+		WHERE user_id  = #{userId}
+	</update>
+	
+	<delete id="deleteUserStat" parameterType="String">
+		DELETE FROM KT.GV_USER_STATE
+		WHERE user_id  = #{userId}
+	</delete>
+	
+</mapper>

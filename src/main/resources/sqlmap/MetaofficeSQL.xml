@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kt.corp.metaoffice.mapper.MetaofficeMapper">
+
+	<select id="existOfficeAuth" parameterType="Map" resultType="Boolean">
+		SELECT
+			EXISTS (
+				SELECT 1
+				FROM KT.GV_EMPLOYEE
+				WHERE 1 = 1
+				AND user_id = #{userId}
+				AND com_id = #{comId}
+				AND auth = true
+			)
+	</select>
+	
+	<select id="existOfficeNobd" parameterType="Long" resultType="Boolean">
+		SELECT
+			EXISTS (
+				SELECT 1
+				FROM KT.GV_META_OFC_NOBD
+				WHERE 1 = 1
+				AND seq = #{seq}
+			)
+	</select>
+	
+	<select id="getOffice" parameterType="String" resultType="MetaofficeDTO">
+		SELECT
+			com_id
+			,com_nm
+		FROM KT.GV_COMPANY
+		WHERE 1 = 1
+		AND com_id = #{comId}
+	</select>
+	
+	<select id="getOfficeNobdList" parameterType="String" resultType="MetaofficeNobdDTO">
+		SELECT
+			seq
+			,nobd_tit
+			,reg_date
+		FROM KT.GV_META_OFC_NOBD
+		WHERE 1 = 1
+		AND com_id = #{comId}
+	</select>
+	
+	<select id="getOfficeNobd" parameterType="Long" resultType="MetaofficeNobdDTO">
+		SELECT
+			seq
+			,nobd_tit
+			,nobd_dtl
+			,nobd_att_tit
+			,reg_date
+		FROM KT.GV_META_OFC_NOBD
+		WHERE 1 = 1
+		AND seq = #{seq}
+	</select>
+	
+	<select id="getOfficeNobdAtt" parameterType="Long" resultType="FileDTO">
+		SELECT
+			nobd_att_tit AS file_name
+			,nobd_att_path AS file_path
+		FROM KT.GV_META_OFC_NOBD
+		WHERE 1 = 1
+		AND seq = #{seq}
+	</select>
+	
+	<select id="getOfficeMembers" parameterType="Map" resultType="MetaofficeMemberDTO">
+		SELECT
+			emp.user_id
+			,CAST(AES_DECRYPT(UNHEX(usr.nm),SHA2('a1s2d3f4g5h6j7k8l9!',512)) AS CHAR) AS nm
+			,st.user_state_code
+			,com.com_nm
+			,jt.job_tit
+			,sm.space_type
+			,sm.space_id
+		FROM KT.GV_EMPLOYEE emp
+		LEFT JOIN KT.GV_USER usr ON emp.user_id = usr.user_id
+		LEFT JOIN KT.GV_USER_STATE st ON emp.user_id = st.user_id
+		LEFT JOIN KT.GV_COMPANY com ON emp.com_id = com.com_id
+		LEFT JOIN KT.GV_COMPANY_JOB_TIT jt ON emp.job_tit = jt.job_tit_id
+		LEFT JOIN KT.GV_SPACE_MEM sm ON emp.user_id = sm.user_id
+		WHERE 1 = 1
+		AND emp.com_id = #{comId}
+		AND emp.user_id != #{userId}
+	</select>
+	
+	<select id="getOfficeGuestsInUser" parameterType="Map" resultType="MetaofficeMemberDTO">
+		SELECT
+			sm.user_type
+			,emp.user_id
+			,CAST(AES_DECRYPT(UNHEX(usr.nm),SHA2('a1s2d3f4g5h6j7k8l9!',512)) AS CHAR) AS nm
+			,st.user_state_code
+			,com.com_nm
+			,jt.job_tit
+		FROM KT.GV_EMPLOYEE emp
+		LEFT JOIN KT.GV_USER usr ON emp.user_id = usr.user_id
+		LEFT JOIN KT.GV_USER_STATE st ON emp.user_id = st.user_id
+		LEFT JOIN KT.GV_COMPANY com ON emp.com_id = com.com_id
+		LEFT JOIN KT.GV_COMPANY_JOB_TIT jt ON emp.job_tit = jt.job_tit_id
+		LEFT JOIN KT.GV_SPACE_MEM sm ON emp.user_id = sm.user_id
+		WHERE 1 = 1
+		AND sm.user_type = 'user'
+		AND sm.space_type = 'MO'
+		AND sm.space_id = #{comId}
+		AND emp.com_id != #{comId}
+		AND emp.user_id != #{userId}		
+	</select>
+	
+	<select id="getOfficeGuestsInGuest" parameterType="Map" resultType="MetaofficeMemberDTO">
+		SELECT
+			sm.user_type
+			,sm.user_id
+			,gst.guest_nick_nm AS nm
+			,gst.state_code AS user_state_code
+		FROM KT.GV_GUEST gst
+		LEFT jOIN KT.GV_SPACE_MEM sm ON gst.guest_id = sm.user_id
+		WHERE 1 = 1
+		AND sm.user_type = 'guest'
+		AND sm.space_type = 'MO'
+		AND sm.space_id = #{comId}
+		AND gst.guest_id != #{userId}
+	</select>
+	
+	<insert id="insertOfficeNobd" useGeneratedKeys="true" keyProperty="seq" parameterType="MetaofficeNobdDTO">
+		INSERT INTO KT.GV_META_OFC_NOBD
+		(
+			com_id
+			,reg_date
+			,nobd_tit
+			,nobd_dtl
+		)
+		VALUES
+		(
+			#{comId}
+			,now()
+			,#{nobdTit}
+			,#{nobdDtl}
+		)
+	</insert>
+	
+	<update id="updateOfficeNobd" parameterType="MetaofficeNobdDTO">
+		UPDATE KT.GV_META_OFC_NOBD
+		SET nobd_tit = #{nobdTit}
+			,nobd_dtl = #{nobdDtl}
+		WHERE 1 = 1
+		AND seq = #{seq}
+	</update>
+	
+	<update id="updateOfficeNobdAtt" parameterType="MetaofficeNobdDTO">
+		UPDATE KT.GV_META_OFC_NOBD
+		SET nobd_att_tit = #{nobdAttTit}
+			,nobd_att_path = #{nobdAttPath}
+		WHERE 1 = 1
+		AND seq = #{seq}
+	</update>
+	
+	<delete id="deleteOfficeNobd" parameterType="Long">
+		DELETE FROM KT.GV_META_OFC_NOBD
+		WHERE 1 = 1
+		AND seq = #{seq}
+	</delete>
+	
+</mapper>

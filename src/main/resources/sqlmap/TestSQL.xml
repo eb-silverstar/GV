@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kt.corp.mapper.TestMapper">
+
+	<select id="getDatabases" parameterType="hashmap" resultType="hashmap">
+		show databases
+	</select>
+	
+	<select id="getConpType" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+			type_code
+			, title 
+		FROM tb.conpanyType
+		ORDER BY type_code
+	</select>
+	
+	<select id="getConpList" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			conp_id
+			, title
+			, conp_code
+			, conp_img
+			, favorite
+			, conp_level
+		FROM tb.conpany
+		WHERE	1=1
+			<if test="conpCode != null and !conpCode.equals('')">
+		 		AND conp_code = #{conpCode}
+	 		</if>
+			<if test="title != null and !title.equals('')">
+				AND title LIKE CONCAT('%', #{title}, '%') 
+	 		</if>
+	</select>
+	
+	<select id="getConpTag" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+			tag_id
+			, conp_id
+			, tag_nm
+		FROM tb.conpanyTag
+		WHERE 1=1
+		<if test="conpId != null and !conpId.equals('')">
+			AND conp_id = #{conpId}
+		</if>
+	</select>
+	
+</mapper>

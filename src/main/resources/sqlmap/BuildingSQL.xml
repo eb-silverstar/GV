@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kt.corp.building.mapper.BuildingMapper">
+
+	<select id="selectHomeCompany" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT 
+			ROW_NUMBER() OVER(ORDER BY com_nm ASC) AS rowNum
+			, c.com_nm AS comNm
+			, c.com_type AS comType
+			, c.com_id AS comId  
+			, c.meta_web_yn AS webAuth											-- 메타웹 권한
+			, IFNULL((SELECT gmo.acc_rights 
+						FROM KT.GV_META_OFC gmo 
+						WHERE gmo.com_id = c.com_id AND gmo.user_id = #{userId}
+				), 'N') AS officeAuth														-- 오피스 권한
+			, (SELECT GROUP_CONCAT(gcut.utztn_tech) AS utztn_tech 
+				FROM KT.GV_COMPANY_UTZTN_TECH gcut 
+				WHERE gcut.com_id = c.com_id) AS utztnTech 			-- 태그
+			, (SELECT GROUP_CONCAT(gcis.invest_stage) AS investStage 
+				FROM KT.GV_COMPANY_INVEST_STAGE gcis 
+				WHERE gcis.com_id = c.com_id) AS investStage			-- 태그
+			, (DATE_ADD(up_date, interval+3 day) >= NOW()) AS newVal	-- 신규 여부
+			, CONCAT('/web?comId=', c.com_id)  AS webLink 			-- 웹 링크
+			, CONCAT('/office?comId=', c.com_id) AS officeLink 		-- 오피스 링크
+			, IFNULL((SELECT f.fav_com_on_off  
+					FROM KT.GV_FAV f				
+					WHERE f.com_id = c.com_id AND f.user_id = #{userId}), 0) AS fav	-- 관심 여부
+		FROM KT.GV_COMPANY c
+	</select>
+	
+	<select id="selectCompanyFav" parameterType="BuildingHomeDTO" resultType="java.util.Map">
+		SELECT
+			user_id
+			,com_nm
+			,com_id
+			,fav_com_on_off
+		FROM KT.GV_FAV
+		WHERE user_id = #{userId} AND com_id = #{comId}
+	</select>
+	
+	<select id="selectCompanyFavUser" parameterType="BuildingHomeDTO" resultType="java.util.Map">
+		SELECT 
+			 c.com_nm 		AS comNm 
+			 , c.com_type 	AS comType 
+			 , c.com_id 		AS comId 
+			 -- , c.img_log  	AS imgLog 
+			 , (SELECT GROUP_CONCAT(gcut.utztn_tech) AS utztn_tech 
+				FROM KT.GV_COMPANY_UTZTN_TECH gcut 
+				WHERE gcut.com_id = c.com_id) 		AS utztnTech 				-- 태그
+			 , (SELECT GROUP_CONCAT(gcis.invest_stage) AS invest_stage 
+				FROM KT.GV_COMPANY_INVEST_STAGE gcis 
+				WHERE gcis.com_id = c.com_id) 		AS investStage			-- 태그
+			 , c.meta_web_yn AS webAuth													-- 메타웹 권한
+			 , IFNULL((SELECT gmo.acc_rights 
+				FROM KT.GV_META_OFC gmo 
+				WHERE gmo.com_id = c.com_id AND gmo.user_id = #{userId}
+				), 'N') 													AS officeAuth				-- 오피스 권한
+			 , CONCAT('/web?comId=', c.com_id)  AS webLink 					-- 웹 링크
+			 , CONCAT('/office?comId=', c.com_id) AS officeLink 				-- 오피스 링크
+			 , IFNULL(f.fav_com_on_off, '0') AS fav 
+		FROM KT.GV_COMPANY c
+		RIGHT OUTER JOIN (
+			SELECT f.com_id, f.fav_com_on_off FROM KT.GV_FAV f
+			WHERE f.user_id  = #{userId}
+				AND f.fav_com_on_off = '1'
+		) f
+		ON c.com_id = f.com_id
+		WHERE 1=1
+		<if test='comType != null and !comType.equals("")'>
+			AND c.com_type  = #{comType}
+		</if>
+		<if test='comNm != null and !comNm.equals("")'>
+			AND c.com_nm LIKE CONCAT('%', #{comNm}, '%')
+		</if>
+	</select>
+	
+	<insert id="insertCompanyFav" parameterType="BuildingHomeDTO">
+		INSERT INTO KT.GV_FAV
+		(
+			user_id
+			, com_nm
+			, com_id
+			, fav_com_on_off
+		)
+		VALUES
+		(
+			#{userId}
+			, #{comNm}
+			, #{comId}
+			, 1
+		)
+	</insert>
+	
+	<update id="updateCompanyFav" parameterType="BuildingHomeDTO">
+		UPDATE KT.GV_FAV
+		SET fav_com_on_off = #{favComVal}
+		WHERE user_id = #{userId} AND com_id = #{comId}
+	</update>
+	
+	<delete id="deleteCompanyFav" parameterType="BuildingHomeDTO">
+		DELETE FROM KT.GV_FAV
+		WHERE user_id = #{userId} AND com_id = #{comId} 
+	</delete>
+	
+	
+</mapper>

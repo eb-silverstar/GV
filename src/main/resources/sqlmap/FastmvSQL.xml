@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kt.corp.fastmv.mapper.FastmvMapper">
+
+	<select id="selectFastmv" parameterType="java.util.Map" resultType="FastMoveDTO">
+		SELECT 
+			M.*
+			, c.com_type 										-- 사업자 유형
+			-- , c.img_log 											-- 로고 이미지
+			, c.META_WEB_YN	as web_auth		-- 메타웹 권한
+			, ifnull((SELECT gmo.acc_rights 
+						FROM KT.GV_META_OFC gmo 
+						WHERE gmo.com_id = M.com_id AND gmo.user_id = M.user_id
+			), 'N') AS office_auth	-- 오피스 권한
+		FROM(
+			SELECT 
+				gu.USER_ID 
+				, fm.COM_ID 			-- 회사 아이디
+				, fm.COM_NM 		-- 회사명
+				, fm.TOP_FIXED 		-- 상단 고정
+				, fm.VISIT_DATE
+			FROM KT.GV_USER gu 
+				LEFT OUTER JOIN
+				KT.GV_FAST_MOVE fm
+				on gu.USER_ID = fm.USER_ID 
+			WHERE gu.USER_ID = #{userId}	
+		)M
+		LEFT OUTER JOIN	KT.GV_COMPANY c
+			ON M.com_id = c.com_id
+		ORDER BY M.visit_date DESC
+	</select>
+	
+	<delete id="deleteFastmv" parameterType="java.util.Map">
+		DELETE FROM KT.GV_FAST_MOVE 
+		WHERE user_id = #{userId} 
+			AND com_id = #{comId}
+	</delete>
+	
+	<update id="updateFastmv" parameterType="java.util.Map">
+		UPDATE KT.GV_FAST_MOVE
+		SET top_fixed = #{topFixed}
+		WHERE user_id = #{userId} 
+			AND com_id = #{comId} 
+	</update>
+	
+</mapper>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kt.corp.help.mapper.HelpMapper">
+
+	<select id="getHelpList" resultType="HelpDTO">
+		SELECT
+			seq
+			, (SELECT nm from KT.GV_USER as U where U.user_id =user_id limit 1) AS nm
+			, (SELECT mail from KT.GV_USER as U where U.user_id =user_id limit 1) AS mail
+			,tit
+			,dtl
+			,reg_date
+		FROM KT.GV_HELP_DESK
+		ORDER BY seq DESC
+	</select>
+
+	<select id="getHelpDetail" parameterType="int" resultType="HelpDTO">
+		SELECT
+			seq
+			, (SELECT nm from KT.GV_USER as U where U.user_id =user_id limit 1) AS nm
+			, (SELECT mail from KT.GV_USER as U where U.user_id =user_id limit 1) AS mail
+			,tit
+			,dtl
+			,reg_date
+		FROM KT.GV_HELP_DESK
+		WHERE 1 = 1
+		AND seq = #{seq}
+	</select>
+	
+	<insert id="insertHelp" useGeneratedKeys="true" keyProperty="seq" parameterType="HelpDTO">
+		INSERT INTO KT.GV_HELP_DESK
+		(
+			user_id
+			,tit
+			,dtl
+			,reg_date
+		)
+		VALUES
+		(
+			#{userId}
+			,#{tit}
+			,#{dtl}
+			,now()
+		)
+	</insert>
+	
+</mapper>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kt.corp.message.mapper.MsgInfoMapper">
+
+    <select id="getAllMsgInfo" resultType="MsgInfoDTO" >
+        SELECT
+             msg_code
+            ,MAX(CASE WHEN msg_lang_gbn = 'en' THEN msg_desc ELSE '' END) AS msgEnDesc
+            ,MAX(CASE WHEN msg_lang_gbn = 'ko' THEN msg_desc ELSE '' END) AS msgKoDesc
+            ,MAX(CASE WHEN msg_lang_gbn = 'zn' THEN msg_desc ELSE '' END) AS msgZnDesc
+            ,MAX(msg_type) AS msgType
+        FROM KT_ADMIN.MSG_INFO
+        WHERE 1=1
+        GROUP BY msg_code
+        ORDER BY msg_code
+    </select>
+	
+</mapper>
